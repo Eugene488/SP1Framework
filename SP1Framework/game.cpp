@@ -251,9 +251,10 @@ void moveCharacter()
         //Beep(1440, 30);
         g_sChar.m_cLocation.X++;        
     }
-    if (g_skKeyEvent[K_SPACE].keyDown)
+    if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         g_sChar.m_bActive = !g_sChar.m_bActive;        
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 
    
