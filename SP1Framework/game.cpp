@@ -32,12 +32,13 @@ Console g_Console(80, 25, "Mask of Yendor");
 //--------------------------------------------------------------
 void init( void )
 {
-    //g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y)); //centering the camera on the player BUGGED
+    //debugging things
+    g_map.setmapposition(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y), image('T', RGB(255,0,0)));
     // Setting attributes of player
     PlayerSpeed = 0.05f;
 
     // Set precision for floating point output
-    g_dElapsedTime = 10.0;    // Susceptible to change 
+    g_dElapsedTime = 100000000000000.0;    // Susceptible to change 
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
@@ -258,6 +259,7 @@ void moveCharacter()
     }
     if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
     {
+        g_Console.writeToBuffer(5, 5, "test");
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
@@ -284,7 +286,7 @@ void processUserInput()
 {
     // quits the game if player hits the escape key
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
-        g_bQuitGame = true;    
+        g_bQuitGame = true;
 }
 
 //--------------------------------------------------------------
@@ -361,15 +363,18 @@ void renderMap()
     //}
     
     //rendering the map
-
     COORD c;
+    g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
     for (int x = g_map.getcampos().get('x'); x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++)
     {
         for (int y = g_map.getcampos().get('y'); y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++)
         {
-            c.X = x;
-            c.Y = y;
-            g_Console.writeToBuffer(c, g_map.getmapposition(position(x,y)).gettext(), g_map.getmapposition(position(x,y)).getcolour());
+            if (x > 0 && y > 0)
+            {
+                c.X = x;
+                c.Y = y;
+                g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
+            }
         }
     }
 }
