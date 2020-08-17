@@ -37,7 +37,7 @@ void init( void )
     PlayerSpeed = 0.05f;
 
     // Set precision for floating point output
-    g_dElapsedTime = 10.0;    // Susceptible to change 
+    g_dElapsedTime = 100000000000.0;    // Susceptible to change 
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
@@ -249,19 +249,21 @@ void updateGame()       // gameplay logic
 
 void moveCharacter()
 {
+   
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
-    if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 0)
+    if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y--;       
     }
-    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
+    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0 && g_map.getmapposition(position(g_sChar.m_cLocation.X-2, g_sChar.m_cLocation.Y)).getcolour() != RGB(87, 245, 66))
     {
+        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y, g_map.getmapposition(position(g_sChar.m_cLocation.X - 2, g_sChar.m_cLocation.Y)).getcolour(),0x59);
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
-    if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
+    if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 2 )
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y++;        
@@ -306,7 +308,7 @@ void render()
         break;
     }
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
-    renderInputEvents();    // renders status of input events
+   // renderInputEvents();    // renders status of input events
     renderToScreen();       // dump the contents of the buffer to the screen, one frame worth of game
 }
 
@@ -372,6 +374,7 @@ void renderMap()
             g_Console.writeToBuffer(c, g_map.getmapposition(position(x,y)).gettext(), g_map.getmapposition(position(x,y)).getcolour());
         }
     }
+    renderWall();
 }
 
 void renderCharacter()
@@ -485,39 +488,21 @@ void renderWall()
 {
     
 
-    for (int i = 0; i < 100000; i++)
+    for (int i = 0; i < g_map.getmapsize('x'); i++)
     {
         
-        int borderblock;
-        borderblock = 24;
-
-        if ((g_sChar.m_cLocation.X == i) && (g_sChar.m_cLocation.Y == borderblock))
-        {
-            if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y)
-            {
-                //Beep(1440, 30);
-                g_sChar.m_cLocation.Y--;
-            }
-
-            
-        }
-
-        else if ((g_sChar.m_cLocation.X == i) && (g_sChar.m_cLocation.Y == 0))
-        {
-            if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y+1)
-            {
-                //Beep(1440, 30);
-                g_sChar.m_cLocation.Y++;
-            }
-        }
+        
 
         
-        WORD charColor = 0x0A;
 
-        charColor = 0x0B;
+        
+        WORD charColor = RGB(87, 245, 66);
 
-        g_Console.writeToBuffer(i, (char)borderblock, charColor);
-        g_Console.writeToBuffer(i, (char)0, charColor);
+        
+
+        g_map.setmapposition(position(i, 24), image(' ', charColor));
+        g_map.setmapposition(position(i, 0), image(' ', charColor));
+        g_map.setmapposition(position(13, i), image(' ', charColor));
     }
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "image.h"
 #include "position.h"
+#include "game.h"
 
 class map
 {
@@ -35,5 +36,7 @@ public:
 	//other methods
 	//camera
 	void centerOnPlayer(position playerpos);
+
+	
 };
 
