@@ -1,83 +1,30 @@
 #include "entity.h"
 
-entity::entity()
-{
-	x = 1;
-	y = 1;
-	name = "";
-}
+entity::entity():pos(-1,-1){}
 
 entity::~entity()
 {
 }
 
-entity::entity(int x, int y)
+entity::entity(position pos): pos(pos){}
+
+position entity::getpos()
 {
-	this->x = x;
-	this->y = y;
+	return pos;
 }
 
-int entity::getx()
-{
-	return x;
-}
-
-int entity::gety()
-{
-	return y;
-}
-
-void entity::setx(int xnumber)
-{
-	x = xnumber;
-}
-
-void entity::sety(int ynumber)
-{
-	y = ynumber;
+void entity::setpos(char xy, int value) {
+	if (xy == 'x')
+	{
+		pos.set('x', value);
+	}
+	else if (xy == 'y')
+	{
+		pos.set('y', value);
+	}
 }
 
 string entity::getname()
 {
 	return name;
-}
-
-void entity::spawn()
-{
-	for (int x = 0; x < 2; x++)
-	{
-		int xLoc = rand() % 18 + 1; //1-17+1
-		int yLoc = rand() % 18 + 1;
-		setx(xLoc);
-		sety(yLoc);
-
-
-	}
-
-}
-
-
-
-
-
-void entity::spawnout()
-{
-	for (int x = 0; x < 2; x++)
-	{
-		int xLoc = rand() % -300;
-		int yLoc = rand() % -400;
-		setx(xLoc);
-		sety(yLoc);
-
-
-	}
-}
-
-void entity::killed_or_eaten()
-{
-	x = -1;
-	y = -1;
-
-
-
 }

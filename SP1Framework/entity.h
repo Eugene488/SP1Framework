@@ -1,27 +1,19 @@
 #pragma once
 #include <string>
+#include "position.h"
+
 using namespace std;
 class entity
 {
 protected:
-	int x;
-	int y;
-	string name;
+	position pos;
+	string name; //name and description(for mouse-over tooltip)
 public:
 	entity();
 	~entity();
-	entity(int x, int y);
-	int getx();
-	int gety();
-	void setx(int xnumber);
-	void sety(int ynumber);
-
-	void spawn();
-
-	void spawnout();
-	void killed_or_eaten();
-	
-	virtual string getname();
-
+	entity(position);
+	position getpos();
+	void setpos(char xy, int value);
+	string getname();
 };
 
