@@ -23,6 +23,9 @@ map g_map = map(150, 150, position(0,0), position(80, 25));
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
+//debugging things
+bool debugtext; //will be rendered at mousepos
+
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
 //            Initialize variables, allocate memory, load data from file, etc. 
@@ -258,9 +261,8 @@ void moveCharacter()
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y--;       
     }
-    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0 && g_map.getmapposition(position(g_sChar.m_cLocation.X-2, g_sChar.m_cLocation.Y)).getcolour() != RGB(87, 245, 66))
+    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0 && static_cast<WORD>(g_map.getmapposition(position(g_sChar.m_cLocation.X-1, g_sChar.m_cLocation.Y)).getcolour()) != static_cast<WORD>(RGB(87, 245, 66)))
     {
-        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y, g_map.getmapposition(position(g_sChar.m_cLocation.X - 2, g_sChar.m_cLocation.Y)).getcolour(),0x59);
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
@@ -309,7 +311,7 @@ void render()
         break;
     }
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
-   // renderInputEvents();    // renders status of input events
+    renderInputEvents();    // renders status of input events
     renderToScreen();       // dump the contents of the buffer to the screen, one frame worth of game
 }
 
@@ -365,7 +367,7 @@ void renderMap()
     
     //rendering the map
     COORD c;
-    g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
+    //g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
     for (int x = g_map.getcampos().get('x'); x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++)
     {
         for (int y = g_map.getcampos().get('y'); y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++)
@@ -448,7 +450,7 @@ void renderInputEvents()
 
     // mouse events    
     ss.str("");
-    ss << "Mouse position (" << g_mouseEvent.mousePosition.X << ", " << g_mouseEvent.mousePosition.Y << ")";
+    ss << debugtext;
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x59);
     ss.str("");
     switch (g_mouseEvent.eventFlags)
