@@ -7,6 +7,9 @@
 #include <iomanip>
 #include <sstream>
 #include "map.h"
+#include <stdlib.h>
+#include <time.h>
+
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -201,6 +204,9 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
     g_mouseEvent.eventFlags = mouseEvent.dwEventFlags;
 }
 
+
+
+
 //--------------------------------------------------------------
 // Purpose  : Update function
 //            This is the update function
@@ -282,7 +288,10 @@ void moveCharacter()
         // resets all the keyboard events(add this to all buttons not meant to be triggered from releasing and not down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
-
+    if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10))
+    {
+        g_bQuitGame = true;
+    }
    
 }
 void processUserInput()
@@ -345,6 +354,7 @@ void renderGame()
 {
     renderMap();        // renders the map to the buffer first
     renderCharacter();  // renders the character into the buffer
+    renderMask();
 }
 
 void renderMap()
@@ -487,6 +497,12 @@ void renderInputEvents()
         break;
     }
     
+}
+
+void renderMask()
+{
+    WORD charColor = 0x7F;
+    g_Console.writeToBuffer(10, (char)10, charColor);
 }
 
 
