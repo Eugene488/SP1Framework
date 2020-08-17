@@ -5,3 +5,7 @@ Release/
 *.suo
 *.user
 ipch/
+*.db
+*.db-shm
+*.db-wal
+.vs/SP1Framework/v16/Browse.VC.opendb
