@@ -34,7 +34,7 @@ void init( void )
     PlayerSpeed = 0.1f;
 
     // Set precision for floating point output
-    g_dElapsedTime = 0.0;    
+    g_dElapsedTime = 10.0;    // Susceptible to change 
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
@@ -211,7 +211,7 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
 void update(double dt)
 {
     // get the delta time
-    g_dElapsedTime += dt;
+    g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
     PlayerSpeedTimer += dt;
 
@@ -222,13 +222,15 @@ void update(double dt)
         case S_GAME: updateGame(); // gameplay logic when we are in the game
             break;
     }
+
+    if (g_dElapsedTime < 0)
+        g_bQuitGame = true; //Once timer hits 0, Game Over
 }
 
 
 void splashScreenWait()    // waits for time to pass in splash screen
 {
-    if (g_dElapsedTime > 3.0) // wait for 3 seconds to switch to game mode, else do nothing
-        g_eGameState = S_GAME;
+    g_eGameState = S_GAME;
 }
 
 void updateGame()       // gameplay logic
