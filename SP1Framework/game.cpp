@@ -15,6 +15,8 @@ SMouseEvent g_mouseEvent;
 // Game specific variables here
 SGameChar   g_sChar;
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
+float PlayerSpeed; //how fast the player moves (in seconds per tile)
+float PlayerSpeedTimer; //tracks how much time has passed and if player should move
 
 // Console object
 Console g_Console(80, 25, "SP1 Framework");
@@ -28,6 +30,9 @@ Console g_Console(80, 25, "SP1 Framework");
 //--------------------------------------------------------------
 void init( void )
 {
+    // Setting attributes of player
+    PlayerSpeed = 0.1f;
+
     // Set precision for floating point output
     g_dElapsedTime = 0.0;    
 
@@ -76,7 +81,7 @@ void shutdown( void )
 void getInput( void )
 {
     // resets all the keyboard events
-    memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    //memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     // then call the console to detect input from user
     g_Console.readConsoleInput();    
 }
@@ -208,6 +213,7 @@ void update(double dt)
     // get the delta time
     g_dElapsedTime += dt;
     g_dDeltaTime = dt;
+    PlayerSpeedTimer += dt;
 
     switch (g_eGameState)
     {
@@ -228,7 +234,11 @@ void splashScreenWait()    // waits for time to pass in splash screen
 void updateGame()       // gameplay logic
 {
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
-    moveCharacter();    // moves the character, collision detection, physics, etc
+    if (PlayerSpeedTimer >= PlayerSpeed)
+    {
+        PlayerSpeedTimer -= PlayerSpeed;
+        moveCharacter();    // moves the character, collision detection, physics, etc
+    }
                         // sound can be played here too.
 }
 
@@ -236,22 +246,22 @@ void moveCharacter()
 {    
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
-    if (g_skKeyEvent[K_W].keyReleased && g_sChar.m_cLocation.Y > 0)
+    if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 0)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y--;       
     }
-    if (g_skKeyEvent[K_A].keyReleased && g_sChar.m_cLocation.X > 0)
+    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
-    if (g_skKeyEvent[K_S].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
+    if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y++;        
     }
-    if (g_skKeyEvent[K_D].keyReleased && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
+    if (g_skKeyEvent[K_D].keyDown && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X++;        
@@ -259,6 +269,8 @@ void moveCharacter()
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         g_sChar.m_bActive = !g_sChar.m_bActive;        
+        // resets all the keyboard events(add this to all buttons not meant to be triggered from releasing and not down)
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 
    
