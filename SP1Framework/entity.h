@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "position.h"
+#include "map.h"
 
 using namespace std;
 class entity
@@ -8,12 +8,16 @@ class entity
 protected:
 	position pos;
 	string name; //name and description(for mouse-over tooltip)
+	image imagey;
 public:
 	entity();
 	~entity();
-	entity(position);
+	entity(position, image);
+
 	position getpos();
-	void setpos(char xy, int value);
 	string getname();
+	image getimage();
+
+	void setpos(char xy, int value, map);
 };
 

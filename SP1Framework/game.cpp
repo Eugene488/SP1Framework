@@ -9,6 +9,7 @@
 #include "map.h"
 #include <stdlib.h>
 #include <time.h>
+#include "player.h"
 
 
 double  g_dElapsedTime;
@@ -17,11 +18,13 @@ SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 
 // Game specific variables here
-SGameChar   g_sChar;
+SGameChar   g_sChar; //TODO remove g_sChar
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 float PlayerSpeed; //how fast the player moves (in seconds per tile)
 float PlayerSpeedTimer; //tracks how much time has passed and if player should move
 map g_map = map(150, 150, position(0,0), position(80, 25));
+player g_player = player(position(5,5), 3, 0.1f, image('P', RGB(0,0,255)));
+float g_player_timer = 0;
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
@@ -42,9 +45,8 @@ void init( void )
     g_map.setmapposition(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y), image('T', RGB(255,0,0)));
     // Setting attributes of player
     PlayerSpeed = 0.05f;
-
     // Set precision for floating point output
-    g_dElapsedTime = 100000000000000.0;    // Susceptible to change 
+    g_dElapsedTime = 3600.0;    // Susceptible to change 
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
@@ -227,6 +229,7 @@ void update(double dt)
     g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
     PlayerSpeedTimer += dt;
+    g_player_timer += dt;
 
     switch (g_eGameState)
     {
@@ -253,6 +256,10 @@ void updateGame()       // gameplay logic
     {
         PlayerSpeedTimer = 0;
         moveCharacter();    // moves the character, collision detection, physics, etc
+    }
+    if (g_player_timer >= g_player.getspd())
+    {
+        //TODO g_player.move()
     }
                         // sound can be played here too.
 }
