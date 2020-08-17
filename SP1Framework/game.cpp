@@ -271,7 +271,7 @@ void moveCharacter()
     }
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
-        g_sChar.m_bActive = !g_sChar.m_bActive;        
+        g_sChar.m_bActive = !g_sChar.m_bActive;
         // resets all the keyboard events(add this to all buttons not meant to be triggered from releasing and not down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
