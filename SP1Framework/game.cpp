@@ -262,25 +262,31 @@ void moveCharacter()
    
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
+    position futurloc = position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y);
     if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 1)
     {
         //Beep(1440, 30);
-        g_sChar.m_cLocation.Y--;       
+        futurloc.set('y', futurloc.get('y') - 1);
     }
-    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0 && static_cast<WORD>(g_map.getmapposition(position(g_sChar.m_cLocation.X-1, g_sChar.m_cLocation.Y)).getcolour()) != static_cast<WORD>(RGB(87, 245, 66)))
+    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
     {
         //Beep(1440, 30);
-        g_sChar.m_cLocation.X--;        
+        futurloc.set('x', futurloc.get('x') - 1);
     }
     if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 2 )
     {
         //Beep(1440, 30);
-        g_sChar.m_cLocation.Y++;        
+        futurloc.set('y', futurloc.get('y') + 1);
     }
     if (g_skKeyEvent[K_D].keyDown && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
     {
         //Beep(1440, 30);
-        g_sChar.m_cLocation.X++;        
+        futurloc.set('x', futurloc.get('x') + 1);  
+    }
+    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) != static_cast<WORD>(RGB(87, 245, 66)))
+    {
+        g_sChar.m_cLocation.X = futurloc.get('x');
+        g_sChar.m_cLocation.Y = futurloc.get('y');
     }
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
