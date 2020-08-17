@@ -235,14 +235,7 @@ void updateGame()       // gameplay logic
 
 void moveCharacter()
 {    
-    if ((g_sChar.m_cLocation.X == 2) && (g_sChar.m_cLocation.Y == 19))
-    {
-        if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y -0)
-        {
-            //Beep(1440, 30);
-            g_sChar.m_cLocation.Y++;
-        }
-    }
+    
 
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
@@ -465,15 +458,39 @@ void renderWall()
 {
     
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 100000; i++)
     {
         
+        int borderblock;
+        borderblock = 24;
+
+        if ((g_sChar.m_cLocation.X == i) && (g_sChar.m_cLocation.Y == borderblock))
+        {
+            if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y)
+            {
+                //Beep(1440, 30);
+                g_sChar.m_cLocation.Y--;
+            }
+
+            
+        }
+
+        else if ((g_sChar.m_cLocation.X == i) && (g_sChar.m_cLocation.Y == 0))
+        {
+            if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y+1)
+            {
+                //Beep(1440, 30);
+                g_sChar.m_cLocation.Y++;
+            }
+        }
+
         
         WORD charColor = 0x0A;
 
         charColor = 0x0B;
 
-        g_Console.writeToBuffer(2, (char)19, charColor);
+        g_Console.writeToBuffer(i, (char)borderblock, charColor);
+        g_Console.writeToBuffer(i, (char)0, charColor);
     }
 
 }
