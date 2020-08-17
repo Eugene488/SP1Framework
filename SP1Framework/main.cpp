@@ -20,6 +20,7 @@ int main( void )
 {
     init();      // initialize your variables
     mainLoop();  // main loop
+
     shutdown();  // do clean up, if any. free memory.
     
     return 0;
@@ -34,6 +35,7 @@ int main( void )
 //--------------------------------------------------------------
 void mainLoop( void )
 {
+    
     g_Timer.startTimer();    // Start timer to calculate how long it takes to render this frame
     while (!g_bQuitGame)      // run this loop until user wants to quit 
     {        

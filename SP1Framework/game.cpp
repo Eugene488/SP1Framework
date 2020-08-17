@@ -6,6 +6,9 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <random>
+
+using namespace std;
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -33,6 +36,9 @@ void init( void )
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
+
+   
+    
 
     g_sChar.m_cLocation.X = g_Console.getConsoleSize().X / 2;
     g_sChar.m_cLocation.Y = g_Console.getConsoleSize().Y / 2;
@@ -216,7 +222,7 @@ void update(double dt)
 
 void splashScreenWait()    // waits for time to pass in splash screen
 {
-    if (g_dElapsedTime > 3.0) // wait for 3 seconds to switch to game mode, else do nothing
+    if (g_dElapsedTime > 0.0) // wait for 3 seconds to switch to game mode, else do nothing
         g_eGameState = S_GAME;
 }
 
@@ -229,6 +235,15 @@ void updateGame()       // gameplay logic
 
 void moveCharacter()
 {    
+    if ((g_sChar.m_cLocation.X == 2) && (g_sChar.m_cLocation.Y == 19))
+    {
+        if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y -0)
+        {
+            //Beep(1440, 30);
+            g_sChar.m_cLocation.Y++;
+        }
+    }
+
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
     if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y > 0)
@@ -256,7 +271,7 @@ void moveCharacter()
         g_sChar.m_bActive = !g_sChar.m_bActive;        
     }
 
-   
+    
 }
 void processUserInput()
 {
@@ -286,6 +301,7 @@ void render()
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
     renderToScreen();       // dump the contents of the buffer to the screen, one frame worth of game
+    
 }
 
 void clearScreen()
@@ -318,6 +334,7 @@ void renderGame()
 {
     renderMap();        // renders the map to the buffer first
     renderCharacter();  // renders the character into the buffer
+    renderWall();       // render wall
 }
 
 void renderMap()
@@ -331,8 +348,8 @@ void renderMap()
     COORD c;
     for (int i = 0; i < 12; ++i)
     {
-        c.X = 5 * i;
-        c.Y = i + 1;
+        c.X =  i;
+        c.Y = 1;
         colour(colors[i]);
         g_Console.writeToBuffer(c, " °±²Û", colors[i]);
     }
@@ -443,6 +460,25 @@ void renderInputEvents()
     }
     
 }
+
+void renderWall()
+{
+    
+
+    for (int i = 0; i < 1; i++)
+    {
+        
+        
+        WORD charColor = 0x0A;
+
+        charColor = 0x0B;
+
+        g_Console.writeToBuffer(2, (char)19, charColor);
+    }
+
+}
+
+
 
 
 
