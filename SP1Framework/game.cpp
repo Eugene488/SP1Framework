@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include "map.h"
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -17,9 +18,10 @@ SGameChar   g_sChar;
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 float PlayerSpeed; //how fast the player moves (in seconds per tile)
 float PlayerSpeedTimer; //tracks how much time has passed and if player should move
+map g_map = map(150, 150, position(0,0), position(80, 25));
 
 // Console object
-Console g_Console(80, 25, "SP1 Framework");
+Console g_Console(80, 25, "Mask of Yendor");
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -30,8 +32,9 @@ Console g_Console(80, 25, "SP1 Framework");
 //--------------------------------------------------------------
 void init( void )
 {
+    //g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y)); //centering the camera on the player BUGGED
     // Setting attributes of player
-    PlayerSpeed = 0.1f;
+    PlayerSpeed = 0.05f;
 
     // Set precision for floating point output
     g_dElapsedTime = 0.0;    
@@ -236,7 +239,7 @@ void updateGame()       // gameplay logic
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
     if (PlayerSpeedTimer >= PlayerSpeed)
     {
-        PlayerSpeedTimer -= PlayerSpeed;
+        PlayerSpeedTimer = 0;
         moveCharacter();    // moves the character, collision detection, physics, etc
     }
                         // sound can be played here too.
@@ -339,19 +342,33 @@ void renderGame()
 
 void renderMap()
 {
+    //delete this later, keep for reference on how the code works
     // Set up sample colours, and output shadings
-    const WORD colors[] = {
-        0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
-        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
-    };
+    //const WORD colors[] = {
+    //    0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
+    //    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
+    //};
+
+    //COORD c;
+    //for (int i = 0; i < 12; ++i)
+    //{
+    //    c.X = 5 * i;
+    //    c.Y = i + 1;
+    //    colour(colors[i]);
+    //    g_Console.writeToBuffer(c, " °±²Û", colors[i]);
+    //}
+    
+    //rendering the map
 
     COORD c;
-    for (int i = 0; i < 12; ++i)
+    for (int x = g_map.getcampos().get('x'); x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++)
     {
-        c.X = 5 * i;
-        c.Y = i + 1;
-        colour(colors[i]);
-        g_Console.writeToBuffer(c, " °±²Û", colors[i]);
+        for (int y = g_map.getcampos().get('y'); y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++)
+        {
+            c.X = x;
+            c.Y = y;
+            g_Console.writeToBuffer(c, g_map.getmapposition(position(x,y)).gettext(), g_map.getmapposition(position(x,y)).getcolour());
+        }
     }
 }
 
