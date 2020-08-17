@@ -1,5 +1,6 @@
 #include "map.h"
 
+
 map::map(int size_x, int size_y):size_x(size_x), size_y(size_y) {
 	mapvalues = new image*[size_x];
 	//malloc
@@ -77,3 +78,4 @@ void map::setmapposition(position pos, image i) {
 void map::centerOnPlayer(position playerpos) {
 	camerapos = position((playerpos.get('x') - ((camerasize.get('x')-1) / 2)), (playerpos.get('y') - ((camerasize.get('y')-1) / 2)));
 }
+	//checking if the camera will be rendering things out of bounds
