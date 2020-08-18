@@ -74,6 +74,17 @@ void map::setmapposition(position pos, image i) {
 }
 
 //other methods
+//map
+void map::clearmap() {
+	for (int x = 0; x < size_x; x++)
+	{
+		for (int y = 0; y < size_y; y++)
+		{
+			mapvalues[x][y] = image();
+		}
+	}
+}
+
 //camera
 void map::centerOnPlayer(position playerpos) {
 	camerapos = position((playerpos.get('x') - ((camerasize.get('x')-1) / 2)), (playerpos.get('y') - ((camerasize.get('y')-1) / 2)));

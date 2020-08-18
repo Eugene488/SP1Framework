@@ -34,9 +34,10 @@ public:
 	void setmapposition(position, image);
 
 	//other methods
+	//map
+	void clearmap();
+
 	//camera
 	void centerOnPlayer(position playerpos);
-
-	
 };
 

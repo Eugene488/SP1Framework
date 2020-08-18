@@ -23,6 +23,7 @@ image entity::getimage() {
 	return imagey;
 }
 
-void entity::setpos(position pos, map map) {
+void entity::setpos(position pos, map& map) {
+	this->pos = pos;
 	map.setmapposition(pos, imagey);
 }

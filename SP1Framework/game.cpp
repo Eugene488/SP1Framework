@@ -18,12 +18,11 @@ SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 
 // Game specific variables here
-SGameChar   g_sChar; //TODO remove g_sChar
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 float PlayerSpeed; //how fast the player moves (in seconds per tile)
 float PlayerSpeedTimer; //tracks how much time has passed and if player should move
 map g_map = map(150, 50, position(0,0), position(80, 25));
-player g_player = player(position(5,5), 3, 0.1f, image('P', RGB(0,255,255)));
+player g_player = player(position(40,12), 3, 0.1f, image('P', 33));
 float g_player_timer = 0;
 
 // Console object
@@ -42,7 +41,7 @@ string debugtext; //will be rendered at mousepos
 void init( void )
 {
     //debugging things
-    g_map.setmapposition(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y), image('T', RGB(255,0,0)));
+
     // Setting attributes of player
     PlayerSpeed = 0.05f;
     // Set precision for floating point output
@@ -51,9 +50,6 @@ void init( void )
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
 
-    g_sChar.m_cLocation.X = g_Console.getConsoleSize().X / 2;
-    g_sChar.m_cLocation.Y = g_Console.getConsoleSize().Y / 2;
-    g_sChar.m_bActive = true;
     // sets the width, height and the font name to use in the console
     g_Console.setConsoleFont(0, 16, L"Consolas");
 
@@ -271,42 +267,42 @@ void moveCharacter()
    
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
-    position futurloc = position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y);
-    if (g_skKeyEvent[K_W].keyDown && g_sChar.m_cLocation.Y > 1)
+    position futurloc = position(g_player.getpos().get('x'), g_player.getpos().get('y'));
+    if (g_skKeyEvent[K_W].keyDown)
     {
         //Beep(1440, 30);
         futurloc.set('y', futurloc.get('y') - 1);
     }
-    if (g_skKeyEvent[K_A].keyDown && g_sChar.m_cLocation.X > 0)
+    if (g_skKeyEvent[K_A].keyDown)
     {
         //Beep(1440, 30);
         futurloc.set('x', futurloc.get('x') - 1);
     }
-    if (g_skKeyEvent[K_S].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 2 )
+    if (g_skKeyEvent[K_S].keyDown)
     {
         //Beep(1440, 30);
         futurloc.set('y', futurloc.get('y') + 1);
     }
-    if (g_skKeyEvent[K_D].keyDown && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
+    if (g_skKeyEvent[K_D].keyDown)
     {
         //Beep(1440, 30);
         futurloc.set('x', futurloc.get('x') + 1);  
     }
     if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) != static_cast<WORD>(RGB(87, 245, 66)))
     {
-        g_sChar.m_cLocation.X = futurloc.get('x');
-        g_sChar.m_cLocation.Y = futurloc.get('y');
+        position prevloc = g_player.getpos();
+        g_player.setpos(futurloc, g_map);
+        g_map.setmapposition(prevloc, image(' ', 0));
     }
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
-        g_sChar.m_bActive = !g_sChar.m_bActive;
         // resets all the keyboard events(add this to all buttons not meant to be triggered from releasing and not down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
-    if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10))
-    {
-        g_bQuitGame = true;
-    }
+    //if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10)) //TODO work on better collision
+    //{
+    //    g_bQuitGame = true;
+    //}
    
 }
 void processUserInput()
@@ -392,7 +388,7 @@ void renderMap()
     
     //rendering the map
     COORD c;
-    g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
+    g_map.centerOnPlayer(g_player.getpos());
     for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
     {
         for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
@@ -411,12 +407,6 @@ void renderMap()
 void renderCharacter()
 {
     // Draw the location of the character
-    WORD charColor = 0x0C;
-    if (g_sChar.m_bActive)
-    {
-        charColor = 0x0A;
-    }
-    g_Console.writeToBuffer(g_sChar.m_cLocation, (char)1, charColor);
 }
 
 void renderFramerate()
@@ -523,8 +513,6 @@ void renderMask()
 
 void renderWall()
 {
-    
-
     for (int i = 0; i < g_map.getmapsize('x'); i++)
     {
         WORD charColor = 240; //bg white
@@ -535,6 +523,5 @@ void renderWall()
             g_map.setmapposition(position(13, i), image(' ', charColor)); //vertical wall
         }
     }
-
 }
 
