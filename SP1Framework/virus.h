@@ -7,7 +7,8 @@ class virus : public entity
 private:
 
 public:
-	virus(position, float, image);
+	virus(float spd, map&);
+	virus(position, float);
 	~virus();
 
 	//getters

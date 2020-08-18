@@ -56,6 +56,7 @@ bool entity::collisiondetection(WORD solids[], int listsize, position& futurloc,
 		if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(solids[i]))
 		{
 			return false;
+			break;
 		}
 	}
 	return true;

@@ -20,7 +20,9 @@ SMouseEvent g_mouseEvent;
 int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
-map g_map = map(200, 200, position(0,0), position(80, 25));
+map g_map = map(100, 50, position(0,0), position(80, 25));
+float virusspawntime;
+float virusspawntimer;
 const int MAXENTITY = 20;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
@@ -48,11 +50,12 @@ void init( void )
 
     //init variables
     srand(time(NULL));
-    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 10));
-    for (int i = 1; i < MAXENTITY; i++)
+    virusspawntime = 1;
+    for (int i = 0; i < MAXENTITY; i++)
     {
         entities[i] = NULL;
     }
+    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 10));
 
     // Setting attributes of player
     previmg = image(NULL, 0);
@@ -237,6 +240,11 @@ void update(double dt)
     // get the delta time
     g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
+
+    //increasing spawn timer for virus
+    virusspawntimer += dt;
+
+    // increasing spd timer for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
         if (entities[i] != NULL)
@@ -274,6 +282,7 @@ void updateGame()       // gameplay logic
         {
             if (entities[i]->getspdtimer() >= entities[i]->getspd())
             {
+                //entities[0] will always be the player
                 if (i == 0)
                 {
                     entities[i]->setspdtimer(0);
@@ -285,11 +294,14 @@ void updateGame()       // gameplay logic
                     entities[i]->move(g_map, solids, size(solids));
                 }
             }
-            else //maybe delete
-            {
-                g_map.setmapposition(entities[i]->getpos(), entities[i]->getimage());
-            }
         }
+    }
+    //spawning viruses
+    if (virusspawntimer >= virusspawntime)
+    {
+        virusspawntimer = 0;
+        virusspawntime = rand() % 2;
+        spawnvirus();
     }
 }
 
@@ -331,7 +343,8 @@ void moveCharacter()
     //rendering
     position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
-    previmg = g_map.getmapposition(futurloc);
+    previmg = image(NULL, 0);
+    //previmg = g_map.getmapposition(futurloc);
     entities[0]->setpos(futurloc, g_map);
 
     //changing symbol of player
@@ -578,3 +591,22 @@ void maskrenderout()
     g_map.setmapposition(position(10, 10), image('M', charColor));
 }
 
+void spawnvirus() {
+    for (int i = 0; i < size(entities); i++)
+    {
+        if (entities[i] == NULL)
+        {
+            entities[i] = new virus(0.5f, g_map);
+            break;
+        }
+    }
+}
+
+/*list of colours used:
+240 -> walls (fg: NULL    bg: white)
+  5 -> virus (fg: purple  bg: NULL)
+ 10 -> player(fg: light_green bg: NULL)
+
+
+
+*/
