@@ -46,7 +46,7 @@ void init( void )
     g_map.setmapposition(position(5, 5), image('T', 4));
 
     // Setting attributes of player
-    previmg = image(NULL, 32);
+    previmg = image(NULL, 0);
     // Set precision for floating point output
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
