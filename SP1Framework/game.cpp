@@ -22,15 +22,15 @@ SGameChar   g_sChar; //TODO remove g_sChar
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 float PlayerSpeed; //how fast the player moves (in seconds per tile)
 float PlayerSpeedTimer; //tracks how much time has passed and if player should move
-map g_map = map(150, 150, position(0,0), position(80, 25));
-player g_player = player(position(5,5), 3, 0.1f, image('P', RGB(0,0,255)));
+map g_map = map(150, 50, position(0,0), position(80, 25));
+player g_player = player(position(5,5), 3, 0.1f, image('P', RGB(0,255,255)));
 float g_player_timer = 0;
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
 //debugging things
-bool debugtext; //will be rendered at mousepos
+string debugtext; //will be rendered at mousepos
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -260,6 +260,8 @@ void updateGame()       // gameplay logic
     if (g_player_timer >= g_player.getspd())
     {
         //TODO g_player.move()
+        debugtext = "yes";
+        g_map.setmapposition(g_player.getpos(), g_player.getimage());
     }
                         // sound can be played here too.
 }
@@ -340,7 +342,7 @@ void render()
 void clearScreen()
 {
     // Clears the buffer with this colour attribute
-    g_Console.clearBuffer(0x1F);
+    g_Console.clearBuffer(0x0);
 }
 
 void renderToScreen()
@@ -395,7 +397,7 @@ void renderMap()
     {
         for (int y = g_map.getcampos().get('y'); y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++)
         {
-            if (x > 0 && y > 0)
+            if (x >= 0 && y >= 0)
             {
                 c.X = x;
                 c.Y = y;
@@ -474,7 +476,7 @@ void renderInputEvents()
     // mouse events    
     ss.str("");
     ss << debugtext;
-    g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x59);
+    g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
     switch (g_mouseEvent.eventFlags)
     {
@@ -525,19 +527,13 @@ void renderWall()
 
     for (int i = 0; i < g_map.getmapsize('x'); i++)
     {
-        
-        
-
-        
-
-        
-        WORD charColor = RGB(87, 245, 66);
-
-        
-
-        g_map.setmapposition(position(i, 24), image(' ', charColor));
-        g_map.setmapposition(position(i, 0), image(' ', charColor));
-        g_map.setmapposition(position(13, i), image(' ', charColor));
+        WORD charColor = 255; //white???!?!?
+        g_map.setmapposition(position(i, 24), image(' ', charColor)); //bottom wall border
+        g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
+        for (int i = 0; i < g_map.getmapsize('y'); i++)
+        {
+            g_map.setmapposition(position(13, i), image(' ', charColor)); //vertical wall
+        }
     }
 
 }
