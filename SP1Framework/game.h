@@ -32,6 +32,7 @@ enum EKEYS
     K_RIGHT,
     K_ESCAPE,
     K_SPACE,
+    K_P,
     K_COUNT
 };
 
@@ -40,6 +41,7 @@ enum EGAMESTATES
 {
     S_SPLASHSCREEN,
     S_GAME,
+    S_PAUSE_MENU,
     S_COUNT
 };
 

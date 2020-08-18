@@ -102,6 +102,8 @@ void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
         break;
     case S_GAME: gameplayKBHandler(keyboardEvent); // handle gameplay keyboard event 
         break;
+    case S_PAUSE_MENU: pauseKBHandler(keyboardEvent);
+        break;
     }
 }
 
@@ -153,6 +155,16 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case VK_RIGHT: key = K_RIGHT; break; 
     case VK_SPACE: key = K_SPACE; break;
     case VK_ESCAPE: key = K_ESCAPE; break; 
+<<<<<<< Updated upstream
+=======
+    //WASD cases
+    case 0x57: key = K_W; break;
+    case 0x41: key = K_A; break;
+    case 0x53: key = K_S; break;
+    case 0x44: key = K_D; break;
+    //others
+    case 0x70: key = K_P; break;
+>>>>>>> Stashed changes
     }
     // a key pressed event would be one with bKeyDown == true
     // a key released event would be one with bKeyDown == false
@@ -163,6 +175,25 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
         g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
         g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
     }    
+}
+
+void pauseKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
+{
+    // here, we map the key to our enums
+    EKEYS key = K_COUNT;
+    switch (keyboardEvent.wVirtualKeyCode)
+    {
+    case 0x70: key = K_P; break;
+    }
+    // a key pressed event would be one with bKeyDown == true
+    // a key released event would be one with bKeyDown == false
+    // if no key is pressed, no event would be fired.
+    // so we are tracking if a key is either pressed, or released
+    if (key != K_COUNT)
+    {
+        g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
+        g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
+    }
 }
 
 //--------------------------------------------------------------
@@ -204,11 +235,31 @@ void update(double dt)
     g_dElapsedTime += dt;
     g_dDeltaTime = dt;
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
     switch (g_eGameState)
     {
         case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
-        case S_GAME: updateGame(); // gameplay logic when we are in the game
+        case S_GAME:     
+            //increasing spawn timer for virus
+            virusspawntimer += dt;
+
+            // increasing spd timer for entities
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[i] != NULL)
+                {
+                    entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+                }
+            }
+            updateGame(); // gameplay logic when we are in the game
+            break;
+        case S_PAUSE_MENU:
+            updateMenu();
             break;
     }
 }
@@ -225,6 +276,13 @@ void updateGame()       // gameplay logic
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
     moveCharacter();    // moves the character, collision detection, physics, etc
                         // sound can be played here too.
+}
+
+void updateMenu() {
+    if (g_skKeyEvent[K_P].keyReleased)
+    {
+        g_eGameState = S_PAUSE_MENU;
+    }
 }
 
 void moveCharacter()
