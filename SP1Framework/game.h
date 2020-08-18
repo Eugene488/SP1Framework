@@ -73,7 +73,7 @@ void renderToScreen();      // dump the contents of the buffer to the screen, on
 void renderInputEvents();   // renders the status of input events
 
 void renderWall();
-
+void maskrenderout();
 
 void renderMask();
 // keyboard and mouse input event managers

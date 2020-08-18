@@ -1,6 +1,8 @@
 #pragma once
 #include "game.h"
-class Mask
+#include "entity.h"
+#include "map.h"
+class Mask :  public entity
 {
 private:
 	int posx;
