@@ -27,3 +27,7 @@ void entity::setpos(position pos, map& map) {
 	this->pos = pos;
 	map.setmapposition(pos, imagey);
 }
+
+void entity::setimage(image imagey) {
+	this->imagey = imagey;
+}

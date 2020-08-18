@@ -19,5 +19,6 @@ public:
 	image getimage();
 
 	void setpos(position, map&);
+	void setimage(image);
 };
 

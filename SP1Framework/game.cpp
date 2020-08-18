@@ -20,16 +20,17 @@ SMouseEvent g_mouseEvent;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(200, 200, position(0,0), position(80, 25));
-player g_player = player(position(40,12), 3, 0.1f, image('P', 33));
+player g_player = player(position(40,12), 3, 0, image(1, 10));
 float g_player_timer = 0; //tracks how much time has passed and if player should move
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
+//WORD triggers[] = {}; TODO onTriggersEnter
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
 //debugging things
-string debugtext; //will be rendered at mousepos
+int debugtext; //will be rendered at mousepos
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -289,8 +290,11 @@ void moveCharacter()
     position prevloc = g_player.getpos();
     g_player.setpos(futurloc, g_map);
     g_map.setmapposition(prevloc, image(' ', 0));
+    //changing symbol of player
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
+        g_player.setimage(image(g_player.getimage().gettext() + 1, g_player.getimage().getcolour()));
+        debugtext = g_player.getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
@@ -359,7 +363,6 @@ void renderSplashScreen()  // renders the splash screen
 void renderGame()
 {
     renderMap();        // renders the map to the buffer first
-    renderCharacter();  // renders the character into the buffer
     renderMask();
 }
 
@@ -388,7 +391,7 @@ void renderMap()
     {
         for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
         {
-            if (x >= 0 && y >= 0)
+            if (x >= 0 && y >= 0 && x < g_map.getmapsize('x') && y <= g_map.getmapsize('y'))
             {
                 c.X = x0;
                 c.Y = y0;
@@ -397,11 +400,6 @@ void renderMap()
         }
     }
     renderWall();
-}
-
-void renderCharacter()
-{
-    // Draw the location of the character
 }
 
 void renderFramerate()
@@ -505,7 +503,7 @@ void renderMask()
     g_Console.writeToBuffer(10, (char)10, charColor);
 }
 
-
+//render border walls
 void renderWall()
 {
     for (int i = 0; i < g_map.getmapsize('x'); i++)
@@ -515,7 +513,8 @@ void renderWall()
         g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
         for (int i = 0; i < g_map.getmapsize('y'); i++)
         {
-            g_map.setmapposition(position(13, i), image(' ', charColor)); //vertical wall
+            g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
+            g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
         }
     }
 }
