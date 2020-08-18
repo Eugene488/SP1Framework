@@ -19,11 +19,11 @@ SMouseEvent g_mouseEvent;
 
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
-float PlayerSpeed; //how fast the player moves (in seconds per tile)
-float PlayerSpeedTimer; //tracks how much time has passed and if player should move
-map g_map = map(150, 50, position(0,0), position(80, 25));
+map g_map = map(200, 200, position(0,0), position(80, 25));
 player g_player = player(position(40,12), 3, 0.1f, image('P', 33));
-float g_player_timer = 0;
+float g_player_timer = 0; //tracks how much time has passed and if player should move
+WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
+//current list: 240 =   white  = walls
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
@@ -43,7 +43,6 @@ void init( void )
     //debugging things
 
     // Setting attributes of player
-    PlayerSpeed = 0.05f;
     // Set precision for floating point output
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
@@ -224,7 +223,6 @@ void update(double dt)
     // get the delta time
     g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
-    PlayerSpeedTimer += dt;
     g_player_timer += dt;
 
     switch (g_eGameState)
@@ -247,16 +245,12 @@ void splashScreenWait()    // waits for time to pass in splash screen
 
 void updateGame()       // gameplay logic
 {
+    //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
-    if (PlayerSpeedTimer >= PlayerSpeed)
-    {
-        PlayerSpeedTimer = 0;
-        moveCharacter();    // moves the character, collision detection, physics, etc
-    }
     if (g_player_timer >= g_player.getspd())
     {
-        //TODO g_player.move()
-        debugtext = "yes";
+        g_player_timer = 0;
+        moveCharacter();    // moves the character, collision detection, physics, etc
         g_map.setmapposition(g_player.getpos(), g_player.getimage());
     }
                         // sound can be played here too.
@@ -265,38 +259,39 @@ void updateGame()       // gameplay logic
 void moveCharacter()
 {
    
-    // Updating the location of the character based on the key release
-    // providing a beep sound whenver we shift the character
+    // Updating the location of the character based on the key down
     position futurloc = position(g_player.getpos().get('x'), g_player.getpos().get('y'));
     if (g_skKeyEvent[K_W].keyDown)
     {
-        //Beep(1440, 30);
         futurloc.set('y', futurloc.get('y') - 1);
     }
     if (g_skKeyEvent[K_A].keyDown)
     {
-        //Beep(1440, 30);
         futurloc.set('x', futurloc.get('x') - 1);
     }
     if (g_skKeyEvent[K_S].keyDown)
     {
-        //Beep(1440, 30);
         futurloc.set('y', futurloc.get('y') + 1);
     }
     if (g_skKeyEvent[K_D].keyDown)
     {
-        //Beep(1440, 30);
         futurloc.set('x', futurloc.get('x') + 1);  
     }
-    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) != static_cast<WORD>(RGB(87, 245, 66)))
+    //collision detection for solids
+    for (int i = 0; i < size(solids); i++)
     {
-        position prevloc = g_player.getpos();
-        g_player.setpos(futurloc, g_map);
-        g_map.setmapposition(prevloc, image(' ', 0));
+        if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(solids[i]))
+        {
+            futurloc = position(g_player.getpos().get('x'), g_player.getpos().get('y'));
+            break;
+        }
     }
+    position prevloc = g_player.getpos();
+    g_player.setpos(futurloc, g_map);
+    g_map.setmapposition(prevloc, image(' ', 0));
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
-        // resets all the keyboard events(add this to all buttons not meant to be triggered from releasing and not down)
+        // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
     //if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10)) //TODO work on better collision

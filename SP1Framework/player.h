@@ -4,7 +4,7 @@ class player :public entity
 {
 private:
 	int hp;
-	float speed;
+	float speed; //how fast the player moves (in seconds per tile)
 public:
 	player();
 	~player();
