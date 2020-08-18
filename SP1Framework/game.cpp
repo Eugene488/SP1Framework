@@ -20,8 +20,9 @@ SMouseEvent g_mouseEvent;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(200, 200, position(0,0), position(80, 25));
-player g_player = player(position(40,12), 3, 0, image(1, 10));
+player g_player = player(position(40,12), 3, 0.05f, image(1, 10));
 float g_player_timer = 0; //tracks how much time has passed and if player should move
+image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
 //WORD triggers[] = {}; TODO onTriggersEnter
@@ -42,8 +43,10 @@ int debugtext; //will be rendered at mousepos
 void init( void )
 {
     //debugging things
+    g_map.setmapposition(position(5, 5), image('T', 4));
 
     // Setting attributes of player
+    previmg = image(NULL, 32);
     // Set precision for floating point output
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
@@ -287,9 +290,12 @@ void moveCharacter()
             break;
         }
     }
+    //rendering
     position prevloc = g_player.getpos();
+    g_map.setmapposition(prevloc, previmg);
+    previmg = g_map.getmapposition(futurloc);
     g_player.setpos(futurloc, g_map);
-    g_map.setmapposition(prevloc, image(' ', 0));
+
     //changing symbol of player
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {

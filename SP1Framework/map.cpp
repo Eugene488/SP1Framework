@@ -30,7 +30,7 @@ map::map(int size_x, int size_y, position camerapos, position camerasize) :size_
 	{
 		for (int y = 0; y < size_y; y++)
 		{
-			mapvalues[x][y] = image();
+			mapvalues[x][y] = image(NULL,32);
 		}
 	}
 }
