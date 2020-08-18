@@ -392,15 +392,15 @@ void renderMap()
     
     //rendering the map
     COORD c;
-    //g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
-    for (int x = g_map.getcampos().get('x'); x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++)
+    g_map.centerOnPlayer(position(g_sChar.m_cLocation.X, g_sChar.m_cLocation.Y));
+    for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
     {
-        for (int y = g_map.getcampos().get('y'); y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++)
+        for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
         {
             if (x >= 0 && y >= 0)
             {
-                c.X = x;
-                c.Y = y;
+                c.X = x0;
+                c.Y = y0;
                 g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
             }
         }
@@ -527,8 +527,8 @@ void renderWall()
 
     for (int i = 0; i < g_map.getmapsize('x'); i++)
     {
-        WORD charColor = 255; //white???!?!?
-        g_map.setmapposition(position(i, 24), image(' ', charColor)); //bottom wall border
+        WORD charColor = 240; //bg white
+        g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
         g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
         for (int i = 0; i < g_map.getmapsize('y'); i++)
         {

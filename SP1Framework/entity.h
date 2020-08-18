@@ -18,6 +18,6 @@ public:
 	string getname();
 	image getimage();
 
-	void setpos(char xy, int value, map);
+	void setpos(position, map);
 };
 

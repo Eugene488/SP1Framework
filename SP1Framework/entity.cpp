@@ -23,14 +23,6 @@ image entity::getimage() {
 	return imagey;
 }
 
-void entity::setpos(char xy, int value, map map) {
-	if (xy == 'x')
-	{
-		pos.set('x', value);
-	}
-	else if (xy == 'y')
-	{
-		pos.set('y', value);
-	}
+void entity::setpos(position pos, map map) {
 	map.setmapposition(pos, imagey);
 }

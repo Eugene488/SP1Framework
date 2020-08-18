@@ -16,5 +16,8 @@ public:
 	//setters
 	void sethp(int value);
 	void setspd(float value);
+
+	//other methods
+	void move(position futurloc);
 };
 

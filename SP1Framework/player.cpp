@@ -1,6 +1,6 @@
 #include "player.h"
 
-player::player(): entity(position(0,0), image('P', RGB(0, 255, 0))), speed(0.1f), hp(3) {}
+player::player(): entity(position(0,0), image('P', 18)), speed(0.1f), hp(3) {}
 player::~player() {
 	//do nothing
 }
@@ -19,4 +19,9 @@ void player::sethp(int value) {
 }
 void player::setspd(float value) {
 	speed = value;
+}
+
+//other methods
+void player::move(position futurloc) {
+	//TODO
 }
