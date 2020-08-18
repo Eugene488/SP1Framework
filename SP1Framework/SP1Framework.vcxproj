@@ -88,6 +88,7 @@
     <ClCompile Include="player.cpp" />
     <ClCompile Include="position.cpp" />
     <ClCompile Include="Mask.cpp" />
+    <ClCompile Include="virus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="entity.h" />
@@ -99,6 +100,7 @@
     <ClInclude Include="player.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="Mask.h" />
+    <ClInclude Include="virus.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include "player.h"
-
+#include "virus.h"
+#include <random>
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -20,8 +21,8 @@ SMouseEvent g_mouseEvent;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(200, 200, position(0,0), position(80, 25));
-player g_player = player(position(40,12), 3, 0.05f, image(1, 10));
-float g_player_timer = 0; //tracks how much time has passed and if player should move
+const int MAXENTITY = 20;
+entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
@@ -45,8 +46,17 @@ void init( void )
     //debugging things
     g_map.setmapposition(position(5, 5), image('T', 4));
 
+    //init variables
+    srand(time(NULL));
+    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 10));
+    for (int i = 1; i < MAXENTITY; i++)
+    {
+        entities[i] = NULL;
+    }
+
     // Setting attributes of player
     previmg = image(NULL, 0);
+
     // Set precision for floating point output
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
@@ -227,7 +237,13 @@ void update(double dt)
     // get the delta time
     g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
-    g_player_timer += dt;
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+        }
+    }
 
     switch (g_eGameState)
     {
@@ -251,20 +267,37 @@ void updateGame()       // gameplay logic
 {
     //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
-    if (g_player_timer >= g_player.getspd())
+    //movement for entities
+    for (int i = 0; i < MAXENTITY; i++)
     {
-        g_player_timer = 0;
-        moveCharacter();    // moves the character, collision detection, physics, etc
-        g_map.setmapposition(g_player.getpos(), g_player.getimage());
+        if (entities[i] != NULL)
+        {
+            if (entities[i]->getspdtimer() >= entities[i]->getspd())
+            {
+                if (i == 0)
+                {
+                    entities[i]->setspdtimer(0);
+                    moveCharacter();
+                }
+                else
+                {
+                    entities[i]->setspdtimer(0);
+                    entities[i]->move(g_map, solids, size(solids));
+                }
+            }
+            else //maybe delete
+            {
+                g_map.setmapposition(entities[i]->getpos(), entities[i]->getimage());
+            }
+        }
     }
-                        // sound can be played here too.
 }
 
 void moveCharacter()
 {
    
     // Updating the location of the character based on the key down
-    position futurloc = position(g_player.getpos().get('x'), g_player.getpos().get('y'));
+    position futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
     if (g_skKeyEvent[K_W].keyDown)
     {
         futurloc.set('y', futurloc.get('y') - 1);
@@ -286,21 +319,21 @@ void moveCharacter()
     {
         if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(solids[i]))
         {
-            futurloc = position(g_player.getpos().get('x'), g_player.getpos().get('y'));
+            futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
             break;
         }
     }
     //rendering
-    position prevloc = g_player.getpos();
+    position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
     previmg = g_map.getmapposition(futurloc);
-    g_player.setpos(futurloc, g_map);
+    entities[0]->setpos(futurloc, g_map);
 
     //changing symbol of player
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
-        g_player.setimage(image(g_player.getimage().gettext() + 1, g_player.getimage().getcolour()));
-        debugtext = g_player.getimage().gettext();
+        entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
+        debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
@@ -392,7 +425,7 @@ void renderMap()
     
     //rendering the map
     COORD c;
-    g_map.centerOnPlayer(g_player.getpos());
+    g_map.centerOnPlayer(entities[0]->getpos());
     for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
     {
         for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)

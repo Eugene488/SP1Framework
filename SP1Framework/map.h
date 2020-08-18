@@ -1,7 +1,10 @@
 #pragma once
 #include "image.h"
 #include "position.h"
-#include "game.h"
+#include <iostream>
+#include <stdlib.h>
+#include <iomanip>
+#include <sstream>
 
 class map
 {

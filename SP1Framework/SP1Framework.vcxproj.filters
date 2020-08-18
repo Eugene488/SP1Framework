@@ -11,6 +11,7 @@
     <ClCompile Include="Mask.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="virus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framework\console.h">
@@ -38,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Framework\timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="virus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
