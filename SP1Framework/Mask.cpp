@@ -1,13 +1,11 @@
 #include "Mask.h"
-#include "game.h"
 #include <iostream>
 #include <Windows.h>
+using namespace std;
 Mask::Mask()
 {
-	this->posx = 10;
-	this->posy = 15;
-	gotoxy(posx, posy);
-	std::cout << "M";
+	WORD charColor = 0x0B;
+
 }
 
 

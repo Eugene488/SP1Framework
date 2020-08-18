@@ -17,7 +17,7 @@ double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-
+int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(200, 200, position(0,0), position(80, 25));
@@ -323,6 +323,11 @@ void moveCharacter()
             break;
         }
     }
+    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B))
+    {
+        maplevel++;
+        maskrenderout();
+    }
     //rendering
     position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
@@ -538,8 +543,17 @@ void renderInputEvents()
 
 void renderMask()
 {
-    WORD charColor = 0x7F;
-    g_Console.writeToBuffer(10, (char)10, charColor);
+    if (maplevel == 1)
+    {
+        WORD charColor = 0x0B;
+        g_map.setmapposition(position(10, 10), image('M', charColor));
+    }
+    else if (maplevel == 2)
+    {
+        
+        WORD charColor = 0x0B;
+        g_map.setmapposition(position(20, 10), image('M', charColor));
+    }
 }
 
 //render border walls
@@ -556,5 +570,11 @@ void renderWall()
             g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
         }
     }
+}
+
+void maskrenderout()
+{
+    WORD charColor = 0x00;
+    g_map.setmapposition(position(10, 10), image('M', charColor));
 }
 
