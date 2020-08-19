@@ -1,6 +1,6 @@
 #include "entity.h"
 
-entity::entity():pos(-1,-1), hp(1), spd(5), spdtimer(0){}
+entity::entity():pos(-1,-1), hp(1), spd(5), spdtimer(0), previmg(image(NULL, 0)){}
 
 entity::~entity()
 {
