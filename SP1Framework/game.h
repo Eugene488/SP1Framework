@@ -2,6 +2,8 @@
 #define _GAME_H
 
 #include "Framework\timer.h"
+#include "position.h"
+#include "map.h"
 
 extern CStopWatch g_swTimer;
 extern bool g_bQuitGame;
@@ -84,4 +86,5 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyb
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
 
 void spawnvirus();
+int getentityfrompos(position pos, map& g_map);
 #endif // _GAME_H

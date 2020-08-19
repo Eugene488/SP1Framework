@@ -295,6 +295,15 @@ void updateGame()       // gameplay logic
                 }
             }
         }
+        //checking for deletion
+        for (int i = 1; i < MAXENTITY; i++) //player is not part of this
+        {
+            if (entities[i] != NULL && entities[i]->gethp() <= 0)
+            {
+                entities[i]->die(g_map);
+                entities[i] = NULL;
+            }
+        }
     }
     //spawning viruses
     if (virusspawntimer >= virusspawntime)
@@ -335,10 +344,21 @@ void moveCharacter()
             break;
         }
     }
-    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B))
+    //trigger detection
+    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B)) //mask
     {
         maplevel++;
         maskrenderout();
+    }
+    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(5)) //virus
+    {
+        int idx = getentityfrompos(futurloc, g_map);
+        if (idx != -1)
+        {
+            entities[idx]->sethp(0);
+            entities[0]->sethp(entities[0]->gethp() - 1);
+            //TODO other negative effects
+        }
     }
     //rendering
     position prevloc = entities[0]->getpos();
@@ -352,7 +372,7 @@ void moveCharacter()
     {
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
         debugtext = entities[0]->getimage().gettext();
-        // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of down)
+        // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
     //if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10)) //TODO work on better collision
@@ -600,6 +620,17 @@ void spawnvirus() {
             break;
         }
     }
+}
+
+int getentityfrompos(position pos, map& g_map) {
+    for (int i = 1; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
+        {
+            return i;
+        }
+    }
+    return -1; //-1 when no entity is in that position(bug?)
 }
 
 /*list of colours used:

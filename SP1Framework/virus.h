@@ -17,5 +17,6 @@ public:
 
 	//other methods
 	void move(map&, WORD solids[], int listsize);
+	void OnTriggerEnter(position, map&);
 };
 

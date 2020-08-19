@@ -3,6 +3,7 @@
 virus::virus(float spd, map& g_map){
 	this->spdtimer = 0;
 	this->spd = spd;
+	this->hp = 1;
 	setimage(image(15, 5));
 	while (true) {
 		position spawnloc = position(rand() % (g_map.getmapsize('x')-3) + 1, rand() % (g_map.getmapsize('y')-2) + 1);
@@ -13,7 +14,7 @@ virus::virus(float spd, map& g_map){
 		}
 	}
 }
-virus::virus(position pos, float spd):entity(pos, image(15, 5), spd){}
+virus::virus(position pos, float spd):entity(pos, image(15, 5), spd, 1){}
 virus::~virus() {
 	//do nothing
 }
@@ -52,4 +53,8 @@ void virus::move(map& g_map, WORD solids[], int listsize) { //1:up 2:upright 3:r
 		previmg = image(NULL, 0);
 		setpos(futurloc, g_map);
 	}
+}
+
+void virus::OnTriggerEnter(position, map&) {
+	//TODO player detection
 }

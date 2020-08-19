@@ -14,10 +14,11 @@ protected:
 	float spdtimer;
 	image previmg;
 	position prevloc;
+	int hp;
 public:
 	entity();
-	~entity();
-	entity(position, image, float);
+	virtual ~entity();
+	entity(position, image, float, int);
 
 	//getters
 	position getpos();
@@ -25,15 +26,19 @@ public:
 	image getimage();
 	float getspd();
 	float getspdtimer();
+	int gethp();
 
 	//setters
 	void setpos(position, map&);
 	void setimage(image);
 	void setspd(float);
 	void setspdtimer(float);
+	void sethp(int);
 
 	//other methods
 	virtual void move(map&, WORD solids[], int listsize) = 0;
 	bool collisiondetection(WORD[], int, position&, map&);
+	virtual void OnTriggerEnter(position, map&);
+	void die(map&);
 };
 
