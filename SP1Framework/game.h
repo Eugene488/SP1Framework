@@ -40,7 +40,12 @@ enum EGAMESTATES
 {
     S_SPLASHSCREEN,
     S_GAME,
-    S_COUNT
+    S_COUNT,
+    S_PAUSE,
+    S_RESTART,
+    S_MAIN
+
+
 };
 
 // struct for the game character
@@ -68,13 +73,28 @@ void renderCharacter();     // renders the character into the buffer
 void renderFramerate();     // renders debug information, frame rate, elapsed time, etc
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
+<<<<<<< Updated upstream
 
+=======
+void renderWall();
+void maskrenderout();
+void updatePause(); // check user input
+void renderMask(); // spawns mask
+void renderPause(); // displays pause menu
+void Restart(); // restarts game
+void mainMenu(); // mainmenu
+>>>>>>> Stashed changes
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
-
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
+<<<<<<< Updated upstream
 
 
+=======
+void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
+void spawnvirus();
+int getentityfrompos(position pos, map& g_map);
+>>>>>>> Stashed changes
 #endif // _GAME_H
