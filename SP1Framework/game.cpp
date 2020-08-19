@@ -354,7 +354,7 @@ void moveCharacter()
         maplevel++;
         maskrenderout();
     }
-    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(5)) //virus
+    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
     {
         int idx = getentityfrompos(futurloc, g_map);
         if (idx != -1)
@@ -659,7 +659,7 @@ int getentityfrompos(position pos, map& g_map) {
 
 /*list of colours used:
 240  -> walls (fg: NULL    bg: white    text: NULL)
-  5  -> virus (fg: purple  bg: NULL     text: 15)
+213  -> virus (fg: purple  bg: NULL     text: 15)
  10  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg:NULL      text: NULL)
