@@ -68,7 +68,7 @@ void init( void )
     g_eGameState = S_SPLASHSCREEN;
 
     // sets the width, height and the font name to use in the console
-    g_Console.setConsoleFont(0, 16, L"Consolas");
+    g_Console.setConsoleFont(0, 16, L"");
 
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
@@ -356,12 +356,19 @@ void moveCharacter()
     }
     else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
     {
-        int idx = getentityfrompos(futurloc, g_map);
-        if (idx != -1)
-        {
-            entities[idx]->sethp(0);
-            entities[0]->sethp(entities[0]->gethp() - 1);
-            //TODO other negative effects
+        while (true) {
+            int idx = getentityfrompos(futurloc, g_map);
+            if (idx != -1)
+            {
+                entities[idx]->sethp(0);
+                entities[idx]->setpos(position(0, 0), g_map);
+                entities[0]->sethp(entities[0]->gethp() - 1);
+                //TODO other negative effects
+            }
+            else
+            {
+                break;
+            }
         }
     }
     //rendering
