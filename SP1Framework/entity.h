@@ -18,7 +18,7 @@ protected:
 public:
 	entity();
 	virtual ~entity();
-	entity(position, image, float, int);
+	entity(position pos, image image, float spd, int hp, string name);
 
 	//getters
 	position getpos();

@@ -4,6 +4,7 @@ virus::virus(float spd, map& g_map){
 	this->spdtimer = 0;
 	this->spd = spd;
 	this->hp = 1;
+	this->name = "virus";
 	setimage(image(15, 5));
 	while (true) {
 		position spawnloc = position(rand() % (g_map.getmapsize('x')-3) + 1, rand() % (g_map.getmapsize('y')-2) + 1);
@@ -14,7 +15,7 @@ virus::virus(float spd, map& g_map){
 		}
 	}
 }
-virus::virus(position pos, float spd):entity(pos, image(15, 5), spd, 1){}
+virus::virus(position pos, float spd):entity(pos, image(15, 5), spd, 1, "virus"){}
 virus::~virus() {
 	//do nothing
 }

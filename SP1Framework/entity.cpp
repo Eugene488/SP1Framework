@@ -7,7 +7,7 @@ entity::~entity()
 	//do nothing
 }
 
-entity::entity(position pos, image image, float spd, int hp): pos(pos), imagey(image), spd(spd), spdtimer(0), previmg(image::image(NULL, 0)), hp(hp){}
+entity::entity(position pos, image image, float spd, int hp, string name): pos(pos), imagey(image), spd(spd), spdtimer(0), previmg(image::image(NULL, 0)), hp(hp), name(name){}
 
 //getters
 position entity::getpos()

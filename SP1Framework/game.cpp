@@ -28,13 +28,13 @@ entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
-//WORD triggers[] = {}; TODO onTriggersEnter
+bool mouse_tooltip_enabled;
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
 //debugging things
-int debugtext; //will be rendered at mousepos
+string debugtext; //will be rendered at mousepos
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -51,6 +51,7 @@ void init( void )
     //init variables
     srand(time(NULL));
     virusspawntime = 1;
+    mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
     {
         entities[i] = NULL;
@@ -187,6 +188,8 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case 0x41: key = K_A; break;
     case 0x53: key = K_S; break;
     case 0x44: key = K_D; break;
+    //others
+    case 0x54: key = K_T; break;
     }
     // a key pressed event would be one with bKeyDown == true
     // a key released event would be one with bKeyDown == false
@@ -257,7 +260,8 @@ void update(double dt)
     {
         case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
-        case S_GAME: updateGame(); // gameplay logic when we are in the game
+        case S_GAME:
+            updateGame(); // gameplay logic when we are in the game
             break;
     }
 
@@ -373,12 +377,16 @@ void moveCharacter()
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
         debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
-        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        g_skKeyEvent[K_SPACE].keyDown = 0;
+        g_skKeyEvent[K_SPACE].keyReleased = 0;
     }
-    //if ((g_sChar.m_cLocation.X == 10) && (g_sChar.m_cLocation.Y == 10)) //TODO work on better collision
-    //{
-    //    g_bQuitGame = true;
-    //}
+    //toggling of mouse over tooltips
+    if (g_skKeyEvent[K_T].keyReleased)
+    {
+        mouse_tooltip_enabled = !mouse_tooltip_enabled;
+        g_skKeyEvent[K_T].keyDown = 0;
+        g_skKeyEvent[K_T].keyReleased = 0;
+    }
    
 }
 void processUserInput()
@@ -414,7 +422,7 @@ void render()
 void clearScreen()
 {
     // Clears the buffer with this colour attribute
-    g_Console.clearBuffer(0x0);
+    g_Console.clearBuffer(32);
 }
 
 void renderToScreen()
@@ -472,7 +480,10 @@ void renderMap()
             {
                 c.X = x0;
                 c.Y = y0;
-                g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
+                if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
+                {
+                    g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
+                }
             }
         }
     }
@@ -502,9 +513,9 @@ void renderFramerate()
 void renderInputEvents()
 {
     // keyboard events
-    COORD startPos = {50, 2};
+    /*COORD startPos = {50, 2};*/
     std::ostringstream ss;
-    std::string key;
+    /*std::string key;
     for (int i = 0; i < K_COUNT; ++i)
     {
         ss.str("");
@@ -531,46 +542,58 @@ void renderInputEvents()
 
         COORD c = { startPos.X, startPos.Y + i };
         g_Console.writeToBuffer(c, ss.str(), 0x17);
-    }
+    }*/
 
     // mouse events    
+    //debugging
     ss.str("");
-    ss << debugtext;
-    g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
+    ss << "debug text: " << debugtext;
+    //g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
-    switch (g_mouseEvent.eventFlags)
+
+    //tooltip
+    if (mouse_tooltip_enabled)
     {
-    case 0:
-        if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+        int idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+        if (idx != -1)
         {
-            ss.str("Left Button Pressed");
-            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x59);
+            ss << entities[idx]->getname();
+            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
         }
-        else if (g_mouseEvent.buttonState == RIGHTMOST_BUTTON_PRESSED)
-        {
-            ss.str("Right Button Pressed");
-            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 2, ss.str(), 0x59);
-        }
-        else
-        {
-            ss.str("Some Button Pressed");
-            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 3, ss.str(), 0x59);
-        }
-        break;
-    case DOUBLE_CLICK:
-        ss.str("Double Clicked");
-        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 4, ss.str(), 0x59);
-        break;        
-    case MOUSE_WHEELED:
-        if (g_mouseEvent.buttonState & 0xFF000000)
-            ss.str("Mouse wheeled down");
-        else
-            ss.str("Mouse wheeled up");
-        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 5, ss.str(), 0x59);
-        break;
-    default:        
-        break;
     }
+//    switch (g_mouseEvent.eventFlags)
+//    {
+//    case 0:
+///*        if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+//        {
+//            ss.str("Left Button Pressed");
+//            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x59);
+//        }
+//        else */if (g_mouseEvent.buttonState == RIGHTMOST_BUTTON_PRESSED)
+//        {
+//            ss.str("Right Button Pressed");
+//            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 2, ss.str(), 0x59);
+//        }
+//        else
+//        {
+//            ss.str("Some Button Pressed");
+//            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 3, ss.str(), 0x59);
+//        }
+//        break;
+//    case DOUBLE_CLICK:
+//        ss.str("Double Clicked");
+//        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 4, ss.str(), 0x59);
+//        break;        
+//    case MOUSE_WHEELED:
+//        if (g_mouseEvent.buttonState & 0xFF000000)
+//            ss.str("Mouse wheeled down");
+//        else
+//            ss.str("Mouse wheeled up");
+//        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 5, ss.str(), 0x59);
+//        break;
+//    default:        
+//        break;
+//    }
     
 }
 
@@ -622,21 +645,24 @@ void spawnvirus() {
     }
 }
 
+//returns the entity that is in pos of g_map
 int getentityfrompos(position pos, map& g_map) {
-    for (int i = 1; i < MAXENTITY; i++)
+    for (int i = 0; i < MAXENTITY; i++)
     {
         if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
         {
             return i;
         }
     }
-    return -1; //-1 when no entity is in that position(bug?)
+    return -1; //-1 when no entity is in that position
 }
 
 /*list of colours used:
-240 -> walls (fg: NULL    bg: white)
-  5 -> virus (fg: purple  bg: NULL)
- 10 -> player(fg: light_green bg: NULL)
+240  -> walls (fg: NULL    bg: white    text: NULL)
+  5  -> virus (fg: purple  bg: NULL     text: 15)
+ 10  -> player(fg: light_green bg: NULL text: 1)
+0x0B -> mask  (fg: white   bg: NULL     text: 'M')
+  0  -> nothing(fg: NULL   bg:NULL      text: NULL)
 
 
 
