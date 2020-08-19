@@ -357,13 +357,23 @@ void moveCharacter()
     else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
     {
         while (true) {
-            int idx = getentityfrompos(futurloc, g_map);
-            if (idx != -1)
+            int* idx = getentityfrompos(futurloc, g_map);
+            if (idx[0] != -1)
             {
-                entities[idx]->sethp(0);
-                entities[idx]->setpos(position(0, 0), g_map);
-                entities[0]->sethp(entities[0]->gethp() - 1);
-                //TODO other negative effects
+                for (int i = 0; i < MAXENTITY; i++)
+                {
+                    if (idx == NULL)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        entities[idx[i]]->sethp(0);
+                        entities[idx[i]]->setpos(position(0, 0), g_map);
+                        entities[0]->sethp(entities[0]->gethp() - 1);
+                        //TODO other negative effects
+                    }
+                }
             }
             else
             {
@@ -559,12 +569,12 @@ void renderInputEvents()
     ss.str("");
 
     //tooltip
-    if (mouse_tooltip_enabled)
+    if (true)
     {
-        int idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
-        if (idx != -1)
+        int* idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+        if (*idx != -1)
         {
-            ss << entities[idx]->getname();
+            ss << entities[idx[0]]->getname();
             g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
         }
     }
@@ -653,15 +663,28 @@ void spawnvirus() {
 }
 
 //returns the entity that is in pos of g_map
-int getentityfrompos(position pos, map& g_map) {
+int* getentityfrompos(position pos, map& g_map) {
+    int a[MAXENTITY];
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        a[i] = NULL;
+    }
     for (int i = 0; i < MAXENTITY; i++)
     {
         if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
         {
-            return i;
+            for (int i2 = 0; i2 < MAXENTITY; i2++)
+            {
+                if (a[i2] == NULL)
+                {
+                    a[i2] = i;
+                }
+            }
+            return a;
         }
     }
-    return -1; //-1 when no entity is in that position
+    a[0] = -1;
+    return a; //-1 when no entity is in that position
 }
 
 /*list of colours used:
