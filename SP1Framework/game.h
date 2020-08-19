@@ -2,6 +2,8 @@
 #define _GAME_H
 
 #include "Framework\timer.h"
+#include "position.h"
+#include "map.h"
 
 extern CStopWatch g_swTimer;
 extern bool g_bQuitGame;
@@ -26,12 +28,17 @@ struct SMouseEvent
 // Enumeration to store the control keys that your game will have
 enum EKEYS
 {
+    K_W,
+    K_A,
+    K_S,
+    K_D,
     K_UP,
     K_DOWN,
     K_LEFT,
     K_RIGHT,
     K_ESCAPE,
     K_SPACE,
+    K_T,
     K_COUNT
 };
 
@@ -69,13 +76,12 @@ void clearScreen();         // clears the current screen and draw from scratch
 void renderSplashScreen();  // renders the splash screen
 void renderGame();          // renders the game stuff
 void renderMap();           // renders the map to the buffer first
-void renderCharacter();     // renders the character into the buffer
 void renderFramerate();     // renders debug information, frame rate, elapsed time, etc
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
-<<<<<<< Updated upstream
 
-=======
+
+
 void renderWall();
 void maskrenderout();
 void updatePause(); // check user input
@@ -83,18 +89,25 @@ void renderMask(); // spawns mask
 void renderPause(); // displays pause menu
 void Restart(); // restarts game
 void mainMenu(); // mainmenu
->>>>>>> Stashed changes
+
+void renderWall();
+void maskrenderout();
+
+void renderMask();
+
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
-<<<<<<< Updated upstream
 
 
-=======
+
 void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
 void spawnvirus();
 int getentityfrompos(position pos, map& g_map);
->>>>>>> Stashed changes
+
+void spawnvirus();
+int getentityfrompos(position pos, map& g_map);
+
 #endif // _GAME_H
