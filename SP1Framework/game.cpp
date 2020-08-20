@@ -20,7 +20,11 @@ SMouseEvent g_mouseEvent;
 int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
-map g_map = map(100, 50, position(0,0), position(80, 25));
+int MAPSIZEX = 200;
+int MAPSIZEY = 200;
+map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
+map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
+map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
 float virusspawntime;
 float virusspawntimer;
 const int MAXENTITY = 20;
@@ -34,7 +38,7 @@ bool mouse_tooltip_enabled;
 Console g_Console(80, 25, "Mask of Yendor");
 
 //debugging things
-string debugtext; //will be rendered at mousepos
+int debugtext; //will be rendered at mousepos
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -56,8 +60,18 @@ void init( void )
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 10));
-
+    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 0));
+    
+    //init maps
+    renderWall(); //creating the border walls
+    //background char map
+    image images[] = {image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6)};
+    int weightage[] = {      80,        80,              1,              1,                1      ,         1 };
+    bgc_map.fill(images, size(images), weightage);
+    //background colour only map
+    image images2[] = { image(NULL, 160)};
+    int weightage2[] = {    2           };
+    bg_map.fill(images2, size(images2), weightage2);
     // Setting attributes of player
     previmg = image(NULL, 0);
 
@@ -361,7 +375,7 @@ void moveCharacter()
             if (idx != -1)
             {
                 entities[idx]->sethp(0);
-                entities[idx]->setpos(position(0, 0), g_map);
+                entities[idx]->setpos(position(0, 0), g_map); //0, 0 will always be a border wall, so unlikely to have any consequences
                 entities[0]->sethp(entities[0]->gethp() - 1);
                 //TODO other negative effects
             }
@@ -371,7 +385,7 @@ void moveCharacter()
             }
         }
     }
-    //rendering
+    //"rendering"
     position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
     previmg = image(NULL, 0);
@@ -476,25 +490,52 @@ void renderMap()
     //    g_Console.writeToBuffer(c, " °±²Û", colors[i]);
     //}
     
-    //rendering the map
+    //rendering the maps
     COORD c;
     g_map.centerOnPlayer(entities[0]->getpos());
-    for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
+    int camposx = g_map.getcampos().get('x');
+    int camsizex = g_map.getcamsize().get('x');
+    int camposy = g_map.getcampos().get('y');
+    int camsizey = g_map.getcamsize().get('y');
+    WORD g_image_colour = 0;
+    WORD bg_image_colour = 0;
+    WORD bgc_image_colour = 0;
+    for (int x = camposx, x0 = 0; x < camposx + camsizex; x++, x0++)
     {
-        for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
+        for (int y = camposy, y0 = 0; y < camposy + camsizey; y++, y0++)
         {
             if (x >= 0 && y >= 0 && x < g_map.getmapsize('x') && y <= g_map.getmapsize('y'))
             {
                 c.X = x0;
                 c.Y = y0;
+                bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
                 if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
+                    g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
+                    if (g_image_colour > 15)
+                    {
+                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
+                    }
+                    else
+                    {
+                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
+                    }
+                }
+                else
+                {
+                    bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
+                    if (bgc_image_colour > 15)
+                    {
+                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                    }
+                    else
+                    {
+                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                    }
                 }
             }
         }
     }
-    renderWall();
 }
 
 void renderFramerate()
@@ -555,7 +596,7 @@ void renderInputEvents()
     //debugging
     ss.str("");
     ss << "debug text: " << debugtext;
-    //g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
+    g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
     //tooltip
@@ -666,11 +707,11 @@ int getentityfrompos(position pos, map& g_map) {
 
 /*list of colours used:
 240  -> walls (fg: NULL    bg: white    text: NULL)
-213  -> virus (fg: purple  bg: NULL     text: 15)
+213  -> virus (fg: purple  bg: magenta  text: 15)
  10  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
-  0  -> nothing(fg: NULL   bg:NULL      text: NULL)
-
+  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+reds -> fire  (fg: reds    bg: reds     text: -21)
 
 
 */
