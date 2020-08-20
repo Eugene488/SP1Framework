@@ -1060,6 +1060,8 @@ void mapchange(int x)
             g_map.setmapposition(position(37, 111 + i), image(' ', charColor));
             g_map.setmapposition(position(26, 111 + i), image(' ', charColor));
             g_map.setmapposition(position(130, 108 + i), image(' ', charColor));
+            g_map.setmapposition(position(135+i, 104), image(' ', charColor));
+            g_map.setmapposition(position(60 , 79+i), image(' ', charColor));
             
         }
         for (int i = 0; i < 13; i++)
@@ -1080,6 +1082,8 @@ void mapchange(int x)
             
             g_map.setmapposition(position(128 , 82+i), image(' ', charColor));
             g_map.setmapposition(position(75, 74 + i), image(' ', charColor));
+            g_map.setmapposition(position(60+i, 84 ), image(' ', charColor));
+            g_map.setmapposition(position(60 + i, 79), image(' ', charColor));
         }
         for (int i = 0; i < 6; i++)
         {
@@ -1087,6 +1091,8 @@ void mapchange(int x)
             g_map.setmapposition(position(95, 85 + i), image(' ', charColor));
             g_map.setmapposition(position(73+i, 90 ), image(' ', charColor));
             g_map.setmapposition(position(89 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(70, 79 + i), image(' ', charColor));
+            g_map.setmapposition(position(96+i, 85), image(' ', charColor));
         }
         for (int i = 0; i < 7; i++)
         {
@@ -1095,11 +1101,18 @@ void mapchange(int x)
             g_map.setmapposition(position(84 + i, 74), image(' ', charColor));
             g_map.setmapposition(position(36, 94+i), image(' ', charColor));
             g_map.setmapposition(position(43, 94 + i), image(' ', charColor));
+            g_map.setmapposition(position(37+i, 94 ), image(' ', charColor));
+            g_map.setmapposition(position(33, 85+i), image(' ', charColor));
+            g_map.setmapposition(position(65, 85 + i), image(' ', charColor));
         }
         for (int i = 0; i < 15; i++)
         {
             g_map.setmapposition(position(27 , 83+i), image(' ', charColor));
             g_map.setmapposition(position(90, 93 + i), image(' ', charColor));
+            g_map.setmapposition(position(135, 95 + i), image(' ', charColor));
+            g_map.setmapposition(position(140, 95 + i), image(' ', charColor));
+            g_map.setmapposition(position(96, 77 + i), image(' ', charColor));
+            g_map.setmapposition(position(101, 77 + i), image(' ', charColor));
         }
         
         for (int i = 0; i < 29; i++)
@@ -1121,6 +1134,8 @@ void mapchange(int x)
         for (int i = 0; i < 9; i++)
         {
             g_map.setmapposition(position(75+i, 71), image(' ', charColor));
+            g_map.setmapposition(position(96 , 95+i), image(' ', charColor));
+            g_map.setmapposition(position(127, 95 + i), image(' ', charColor));
         }
         
         for (int i = 0; i < 18; i++)
@@ -1154,6 +1169,8 @@ void mapchange(int x)
             g_map.setmapposition(position(90 + i, 108), image(' ', charColor));
             g_map.setmapposition(position(86 , 89+i), image(' ', charColor));
             g_map.setmapposition(position(68, 89 + i), image(' ', charColor));
+            g_map.setmapposition(position(32, 102 + i), image(' ', charColor));
+            g_map.setmapposition(position(53, 102 + i), image(' ', charColor));
         }
         
         for (int i = 0; i < 22; i++)
@@ -1163,6 +1180,12 @@ void mapchange(int x)
             g_map.setmapposition(position(62 + i, 105), image(' ', charColor));
             g_map.setmapposition(position(32 + i, 102), image(' ', charColor));
             g_map.setmapposition(position(32 + i, 105), image(' ', charColor));
+        }
+
+        for (int i = 0; i < 31; i++)
+        {
+            g_map.setmapposition(position(96 + i, 95), image(' ', charColor));
+            g_map.setmapposition(position(96 + i, 103), image(' ', charColor));
         }
         
 
@@ -1181,6 +1204,11 @@ void mapchange(int x)
         {
             g_map.setmapposition(position(36, 94 + i), image(' ', charColor));
             g_map.setmapposition(position(43, 94 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 26; i++)
+        {
+            g_map.setmapposition(position(101 + i, 84 ), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 93), image(' ', charColor));
         }
 
         entities[0]->setpos(position(100, 199), g_map);
