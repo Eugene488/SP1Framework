@@ -367,13 +367,14 @@ void moveCharacter()
             break;
         }
     }
-    //trigger detection
-    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B)) //mask
+    //trigger detection for g_map
+    WORD g_mapcolour = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
+    if (g_mapcolour == static_cast<WORD>(0x0B)) //mask
     {
         maplevel++;
         maskrenderout();
     }
-    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
+    else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(&idx[0], futurloc, g_map);
         if (idx[0] != -1)
@@ -392,6 +393,12 @@ void moveCharacter()
                 }
             }
         }
+    }
+    //trigger detection for bgc_map
+    char bgc_map_char = g_map.getmapposition(futurloc).gettext();
+    if (bgc_map_char == -21) //fire
+    {
+        entities[0]->sethp(entities[0]->gethp() - 1);
     }
     //"rendering"
     position prevloc = entities[0]->getpos();
