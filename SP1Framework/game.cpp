@@ -35,6 +35,7 @@ image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
 bool mouse_tooltip_enabled;
+player* g_player;
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
@@ -75,6 +76,7 @@ void init( void )
     int weightage2[] = {    2           };
     bg_map.fill(images2, size(images2), weightage2);
     // Setting attributes of player
+    g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
 
     // Set precision for floating point output
@@ -280,6 +282,10 @@ void update(double dt)
         case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
         case S_GAME:
+            if (g_player->getItimer() <= 0.5f)
+            {
+                g_player->setItimer(g_player->getItimer() + dt);
+            }
             updateGame(); // gameplay logic when we are in the game
             break;
     }
@@ -388,17 +394,17 @@ void moveCharacter()
                 else
                 {
                     entities[idx[i]]->sethp(0);
-                    entities[0]->sethp(entities[0]->gethp() - 1);
+                    g_player->takedmg(1);
                     //TODO other negative effects
                 }
             }
         }
     }
     //trigger detection for bgc_map
-    char bgc_map_char = g_map.getmapposition(futurloc).gettext();
+    char bgc_map_char = bgc_map.getmapposition(futurloc).gettext();
     if (bgc_map_char == -21) //fire
     {
-        entities[0]->sethp(entities[0]->gethp() - 1);
+        g_player->takedmg(1);
     }
     //"rendering"
     position prevloc = entities[0]->getpos();
@@ -612,6 +618,7 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+    debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
