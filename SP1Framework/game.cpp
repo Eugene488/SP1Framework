@@ -6,30 +6,35 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include "map.h"
+#include <stdlib.h>
+#include <time.h>
+#include "player.h"
+#include "virus.h"
+#include <random>
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-
+int maplevel = 1;
 // Game specific variables here
-SGameChar   g_sChar;
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
-<<<<<<< Updated upstream
-=======
 map g_map = map(200, 200, position(0,0), position(80, 25));
 float virusspawntime;
 float virusspawntimer;
-const int MAXENTITY = 50;
+const int MAXENTITY = 20;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
-//WORD triggers[] = {}; TODO onTriggersEnter
->>>>>>> Stashed changes
+bool mouse_tooltip_enabled;
 
 // Console object
-Console g_Console(80, 25, "SP1 Framework");
+Console g_Console(80, 25, "Mask of Yendor");
+
+//debugging things
+string debugtext; //will be rendered at mousepos
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -40,22 +45,34 @@ Console g_Console(80, 25, "SP1 Framework");
 //--------------------------------------------------------------
 void init( void )
 {
+    //debugging things
+    g_map.setmapposition(position(5, 5), image('T', 4));
+
+    //init variables
+    srand(time(NULL));
+    virusspawntime = 1;
+    mouse_tooltip_enabled = true;
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        entities[i] = NULL;
+    }
+    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 10));
+
+    // Setting attributes of player
+    previmg = image(NULL, 0);
+
     // Set precision for floating point output
-    g_dElapsedTime = 0.0;    
+    g_dElapsedTime = 3600.0;    // Susceptible to change 
 
     // sets the initial state for the game
     g_eGameState = S_SPLASHSCREEN;
 
-    g_sChar.m_cLocation.X = g_Console.getConsoleSize().X / 2;
-    g_sChar.m_cLocation.Y = g_Console.getConsoleSize().Y / 2;
-    g_sChar.m_bActive = true;
     // sets the width, height and the font name to use in the console
-    g_Console.setConsoleFont(0, 16, L"Consolas");
+    g_Console.setConsoleFont(0, 16, L"");
 
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
-    g_Console.setMouseHandler(mouseHandler); 
-    renderWall();
+    g_Console.setMouseHandler(mouseHandler);
 }
 
 //--------------------------------------------------------------
@@ -89,7 +106,7 @@ void shutdown( void )
 void getInput( void )
 {
     // resets all the keyboard events
-    memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    //memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     // then call the console to detect input from user
     g_Console.readConsoleInput();    
 }
@@ -166,6 +183,13 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case VK_RIGHT: key = K_RIGHT; break; 
     case VK_SPACE: key = K_SPACE; break;
     case VK_ESCAPE: key = K_ESCAPE; break; 
+    //WASD cases
+    case 0x57: key = K_W; break;
+    case 0x41: key = K_A; break;
+    case 0x53: key = K_S; break;
+    case 0x44: key = K_D; break;
+    //others
+    case 0x54: key = K_T; break;
     }
     // a key pressed event would be one with bKeyDown == true
     // a key released event would be one with bKeyDown == false
@@ -197,6 +221,9 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
     g_mouseEvent.eventFlags = mouseEvent.dwEventFlags;
 }
 
+
+
+
 //--------------------------------------------------------------
 // Purpose  : Update function
 //            This is the update function
@@ -214,67 +241,137 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
 void update(double dt)
 {
     // get the delta time
-    g_dElapsedTime += dt;
+    g_dElapsedTime -= dt;
     g_dDeltaTime = dt;
+
+    //increasing spawn timer for virus
+    virusspawntimer += dt;
+
+    // increasing spd timer for entities
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+        }
+    }
 
     switch (g_eGameState)
     {
         case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
-        case S_GAME: updateGame(); // gameplay logic when we are in the game
+        case S_GAME:
+            updateGame(); // gameplay logic when we are in the game
             break;
     }
+
+    if (g_dElapsedTime < 0)
+        g_bQuitGame = true; //Once timer hits 0, Game Over
 }
 
 
 void splashScreenWait()    // waits for time to pass in splash screen
 {
-    if (g_dElapsedTime > 3.0) // wait for 3 seconds to switch to game mode, else do nothing
-        g_eGameState = S_GAME;
+    g_eGameState = S_GAME;
 }
 
 void updateGame()       // gameplay logic
 {
+    //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
-    moveCharacter();    // moves the character, collision detection, physics, etc
-                        // sound can be played here too.
+    //movement for entities
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            if (entities[i]->getspdtimer() >= entities[i]->getspd())
+            {
+                //entities[0] will always be the player
+                if (i == 0)
+                {
+                    entities[i]->setspdtimer(0);
+                    moveCharacter();
+                }
+                else
+                {
+                    entities[i]->setspdtimer(0);
+                    entities[i]->move(g_map, solids, size(solids));
+                }
+            }
+        }
+        //checking for deletion
+        for (int i = 1; i < MAXENTITY; i++) //player is not part of this
+        {
+            if (entities[i] != NULL && entities[i]->gethp() <= 0)
+            {
+                entities[i]->die(g_map);
+                entities[i] = NULL;
+            }
+        }
+    }
+    //spawning viruses
+    if (virusspawntimer >= virusspawntime)
+    {
+        virusspawntimer = 0;
+        virusspawntime = rand() % 2;
+        spawnvirus();
+    }
 }
 
 void moveCharacter()
-{    
-    // Updating the location of the character based on the key release
-    // providing a beep sound whenver we shift the character
-    if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y > 0)
+{
+   
+    // Updating the location of the character based on the key down
+    position futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
+    if (g_skKeyEvent[K_W].keyDown)
     {
-        //Beep(1440, 30);
-        g_sChar.m_cLocation.Y--;       
+        futurloc.set('y', futurloc.get('y') - 1);
     }
-    if (g_skKeyEvent[K_LEFT].keyReleased && g_sChar.m_cLocation.X > 0)
+    if (g_skKeyEvent[K_A].keyDown)
     {
-        //Beep(1440, 30);
-        g_sChar.m_cLocation.X--;        
+        futurloc.set('x', futurloc.get('x') - 1);
     }
-    if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
+    if (g_skKeyEvent[K_S].keyDown)
     {
-        //Beep(1440, 30);
-        g_sChar.m_cLocation.Y++;        
+        futurloc.set('y', futurloc.get('y') + 1);
     }
-<<<<<<< Updated upstream
-    if (g_skKeyEvent[K_RIGHT].keyReleased && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
+    if (g_skKeyEvent[K_D].keyDown)
     {
-        //Beep(1440, 30);
-        g_sChar.m_cLocation.X++;        
+        futurloc.set('x', futurloc.get('x') + 1);  
     }
-=======
-    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B)) // mask collision
+    //collision detection for solids
+    for (int i = 0; i < size(solids); i++)
+    {
+        if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(solids[i]))
+        {
+            futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
+            break;
+        }
+    }
+    //trigger detection
+    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B)) //mask
     {
         maplevel++;
         maskrenderout();
-        
         mapchange(maplevel);
-        
     }
-
+    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
+    {
+        while (true) {
+            int idx = getentityfrompos(futurloc, g_map);
+            if (idx != -1)
+            {
+                entities[idx]->sethp(0);
+                entities[idx]->setpos(position(0, 0), g_map);
+                entities[0]->sethp(entities[0]->gethp() - 1);
+                //TODO other negative effects
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
     //rendering
     position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
@@ -283,19 +380,28 @@ void moveCharacter()
     entities[0]->setpos(futurloc, g_map);
 
     //changing symbol of player
->>>>>>> Stashed changes
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
-        g_sChar.m_bActive = !g_sChar.m_bActive;        
+        entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
+        debugtext = entities[0]->getimage().gettext();
+        // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
+        g_skKeyEvent[K_SPACE].keyDown = 0;
+        g_skKeyEvent[K_SPACE].keyReleased = 0;
     }
-
+    //toggling of mouse over tooltips
+    if (g_skKeyEvent[K_T].keyReleased)
+    {
+        mouse_tooltip_enabled = !mouse_tooltip_enabled;
+        g_skKeyEvent[K_T].keyDown = 0;
+        g_skKeyEvent[K_T].keyReleased = 0;
+    }
    
 }
 void processUserInput()
 {
     // quits the game if player hits the escape key
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
-        g_bQuitGame = true;    
+        g_bQuitGame = true;
 }
 
 //--------------------------------------------------------------
@@ -319,15 +425,12 @@ void render()
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
     renderToScreen();       // dump the contents of the buffer to the screen, one frame worth of game
-
 }
-
-
 
 void clearScreen()
 {
     // Clears the buffer with this colour attribute
-    g_Console.clearBuffer(0x1F);
+    g_Console.clearBuffer(32);
 }
 
 void renderToScreen()
@@ -353,45 +456,13 @@ void renderSplashScreen()  // renders the splash screen
 void renderGame()
 {
     renderMap();        // renders the map to the buffer first
-<<<<<<< Updated upstream
-    renderCharacter();  // renders the character into the buffer
-=======
     renderMask();
-   
->>>>>>> Stashed changes
 }
-
-
 
 void renderMap()
 {
+    //delete this later, keep for reference on how the code works
     // Set up sample colours, and output shadings
-<<<<<<< Updated upstream
-    const WORD colors[] = {
-        0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
-        0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
-    };
-
-    COORD c;
-    for (int i = 0; i < 12; ++i)
-    {
-        c.X = 5 * i;
-        c.Y = i + 1;
-        colour(colors[i]);
-        g_Console.writeToBuffer(c, " °±²Û", colors[i]);
-    }
-}
-
-void renderCharacter()
-{
-    // Draw the location of the character
-    WORD charColor = 0x0C;
-    if (g_sChar.m_bActive)
-    {
-        charColor = 0x0A;
-    }
-    g_Console.writeToBuffer(g_sChar.m_cLocation, (char)1, charColor);
-=======
     //const WORD colors[] = {
     //    0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
     //    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
@@ -407,33 +478,25 @@ void renderCharacter()
     //}
     
     //rendering the map
-    
-    
-        COORD c;
-        g_map.centerOnPlayer(entities[0]->getpos());
-        for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
+    COORD c;
+    g_map.centerOnPlayer(entities[0]->getpos());
+    for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
+    {
+        for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
         {
-            for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
+            if (x >= 0 && y >= 0 && x < g_map.getmapsize('x') && y <= g_map.getmapsize('y'))
             {
-                if (x >= 0 && y >= 0 && x < g_map.getmapsize('x') && y <= g_map.getmapsize('y'))
+                c.X = x0;
+                c.Y = y0;
+                if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    c.X = x0;
-                    c.Y = y0;
                     g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
                 }
             }
         }
-
-        
-    
-    
-    
-    
-    
->>>>>>> Stashed changes
+    }
+    renderWall();
 }
-
-
 
 void renderFramerate()
 {
@@ -488,16 +551,35 @@ void renderInputEvents()
         COORD c = { startPos.X, startPos.Y + i };
         g_Console.writeToBuffer(c, ss.str(), 0x17);
     }
-
+    //TO BE REENABLED LATER
     // mouse events    
+    //debugging
+    //ss.str("");
+    //ss << "debug text: " << debugtext;
+    ////g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
+    //ss.str("");
+
+    ////tooltip
+    //if (mouse_tooltip_enabled)
+    //{
+    //    int idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+    //    if (idx != -1)
+    //    {
+    //        ss << entities[idx]->getname();
+    //        g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
+    //    }
+    //}
+
+
+
     ss.str("");
-<<<<<<< Updated upstream
-    ss << "Mouse position (" << g_mouseEvent.mousePosition.X << ", " << g_mouseEvent.mousePosition.Y << ")";
+
+    ss << " ";
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x59);
-=======
-    ss << "x= "<<g_mouseEvent.mousePosition.X + g_map.getcampos().get('x')<<" y= "<< g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
+
+    ss << "x= " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << " y= " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
->>>>>>> Stashed changes
+
     ss.str("");
     switch (g_mouseEvent.eventFlags)
     {
@@ -521,7 +603,7 @@ void renderInputEvents()
     case DOUBLE_CLICK:
         ss.str("Double Clicked");
         g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 4, ss.str(), 0x59);
-        break;        
+        break;
     case MOUSE_WHEELED:
         if (g_mouseEvent.buttonState & 0xFF000000)
             ss.str("Mouse wheeled down");
@@ -529,14 +611,13 @@ void renderInputEvents()
             ss.str("Mouse wheeled up");
         g_Console.writeToBuffer(g_mouseEvent.mousePosition.X, g_mouseEvent.mousePosition.Y + 5, ss.str(), 0x59);
         break;
-    default:        
+    default:
         break;
     }
-    
+
 }
 
-<<<<<<< Updated upstream
-=======
+
 void renderMask()
 {
     if (maplevel == 1)
@@ -546,10 +627,10 @@ void renderMask()
     }
     else if (maplevel == 2)
     {
-        
+
         WORD charColor = 0x0B;
         g_map.setmapposition(position(20, 10), image('M', charColor));
-        
+
     }
     else if (maplevel == 3)
     {
@@ -573,31 +654,34 @@ void renderWall()
         WORD charColor = 240; //bg white
         g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
         g_map.setmapposition(position(i, 0), image(' ', charColor));//top wall border
+
+        //MAP 1 DESIGN
+
         for (int i = 0; i < 40; i++)
         {
-            g_map.setmapposition(position(180, 5+i), image(' ', charColor));
-            
+            g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
+
         }
         for (int i = 0; i < 20; i++)
         {
-            g_map.setmapposition(position(180+i, 25), image(' ', charColor));
+            g_map.setmapposition(position(180 + i, 25), image(' ', charColor));
             g_map.setmapposition(position(180 + i, 29), image(' ', charColor));
         }
         for (int i = 0; i < 82; i++)
         {
-            g_map.setmapposition(position(98+i, 5), image(' ', charColor));
+            g_map.setmapposition(position(98 + i, 5), image(' ', charColor));
             g_map.setmapposition(position(98 + i, 6), image(' ', charColor));
         }
         for (int i = 0; i < 7; i++)
-        { 
+        {
 
-            g_map.setmapposition(position(148 , 6+i), image(' ', charColor));
+            g_map.setmapposition(position(148, 6 + i), image(' ', charColor));
 
         }
         for (int i = 0; i < 34; i++)
         {
 
-            g_map.setmapposition(position(146+i, 13), image(' ', charColor));
+            g_map.setmapposition(position(146 + i, 13), image(' ', charColor));
 
         }
         for (int i = 0; i < 28; i++)
@@ -609,37 +693,39 @@ void renderWall()
         for (int i = 0; i < 12; i++)
         {
 
-            g_map.setmapposition(position(91 , 9+i), image(' ', charColor));
+            g_map.setmapposition(position(91, 9 + i), image(' ', charColor));
+            g_map.setmapposition(position(137, 31 + i), image(' ', charColor));
 
         }
         for (int i = 0; i < 2; i++)
         {
 
-            g_map.setmapposition(position(118, 10 +i), image(' ', charColor));
+            g_map.setmapposition(position(118, 10 + i), image(' ', charColor));
+            
 
         }
         for (int i = 0; i < 8; i++)
         {
 
-            g_map.setmapposition(position(118+i, 11), image(' ', charColor));
+            g_map.setmapposition(position(118 + i, 11), image(' ', charColor));
 
         }
         for (int i = 0; i < 6; i++)
         {
 
-            g_map.setmapposition(position(125, 11+i), image(' ', charColor));
+            g_map.setmapposition(position(125, 11 + i), image(' ', charColor));
 
         }
         for (int i = 0; i < 36; i++)
         {
 
-            g_map.setmapposition(position(125+i, 16), image(' ', charColor));
+            g_map.setmapposition(position(125 + i, 16), image(' ', charColor));
 
         }
         for (int i = 0; i < 15; i++)
         {
 
-            g_map.setmapposition(position(160, 16+i), image(' ', charColor));
+            g_map.setmapposition(position(160, 16 + i), image(' ', charColor));
 
         }
 
@@ -652,7 +738,7 @@ void renderWall()
         for (int i = 0; i < 10; i++)
         {
 
-            g_map.setmapposition(position(150+i, 30), image(' ', charColor));
+            g_map.setmapposition(position(150 + i, 30), image(' ', charColor));
 
         }
         for (int i = 0; i < 10; i++)
@@ -661,26 +747,65 @@ void renderWall()
             g_map.setmapposition(position(175 + i, 44), image(' ', charColor));
 
         }
-        for (int i = 0; i < 27; i++)
+        for (int i = 0; i < 30; i++)
         {
 
-            g_map.setmapposition(position(175 , 17+i), image(' ', charColor));
+            g_map.setmapposition(position(175, 14 + i), image(' ', charColor));
+            g_map.setmapposition(position(145+i, 34), image(' ', charColor));
+            g_map.setmapposition(position(137+i , 34), image(' ', charColor));
+            g_map.setmapposition(position(115 + i, 27), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 7; i++)
+        {
+
+            g_map.setmapposition(position(145 , 27+i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 5; i++)
+        {
+
+            g_map.setmapposition(position(115, 27 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 22; i++)
+        {
+
+            g_map.setmapposition(position(115+i, 31 ), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 38; i++)
+        {
+
+            g_map.setmapposition(position(137 + i, 42), image(' ', charColor));
 
         }
         for (int i = 0; i < 60; i++)
         {
-            g_map.setmapposition(position(91+i, 20), image(' ', charColor));
+            g_map.setmapposition(position(91 + i, 20), image(' ', charColor));
         }
+        for (int i = 0; i < 46; i++)
+        {
+            g_map.setmapposition(position(91 , i), image(' ', charColor));
+        }
+        for (int i = 0; i < 100; i++)
+        {
+            g_map.setmapposition(position(91+i, 46), image(' ', charColor));
+        }
+
+        
+
+        // END OF MAP 1 DESIGN
 
         for (int i = 0; i < g_map.getmapsize('y'); i++)
         {
             g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
-            g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
+            g_map.setmapposition(position(g_map.getmapsize('x') - 1, i), image(' ', charColor)); //right wall border
         }
+
+        
     }
 }
-
-
 
 void maskrenderout()
 {
@@ -691,22 +816,24 @@ void maskrenderout()
 void mapchange(int x)
 {
     g_map.clearmap();
+    
     if (maplevel == 2)
     {
-        
-        
+
+
         for (int i = 0; i < 5; i++)
         {
 
             g_map.setmapposition(position(i, 1), image(' ', 240));
         }
+        entities[0]->setpos(position(9, 30), g_map);
         
-        entities[0]->setpos(position(9, 9), g_map);
-        
+
     }
     if (maplevel == 3)
     {
         g_map.setmapposition(position(20, 1), image(' ', 240));
+        entities[0]->setpos(position(4, 45), g_map);
 
     }
     if (maplevel == 4)
@@ -727,11 +854,25 @@ void spawnvirus() {
     }
 }
 
+//returns the entity that is in pos of g_map
+int getentityfrompos(position pos, map& g_map) {
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
+        {
+            return i;
+        }
+    }
+    return -1; //-1 when no entity is in that position
+}
+
 /*list of colours used:
-240 -> walls (fg: NULL    bg: white)
-  5 -> virus (fg: purple  bg: NULL)
- 10 -> player(fg: light_green bg: NULL)
+240  -> walls (fg: NULL    bg: white    text: NULL)
+213  -> virus (fg: purple  bg: NULL     text: 15)
+ 10  -> player(fg: light_green bg: NULL text: 1)
+0x0B -> mask  (fg: white   bg: NULL     text: 'M')
+  0  -> nothing(fg: NULL   bg:NULL      text: NULL)
 
->>>>>>> Stashed changes
 
 
+*/
