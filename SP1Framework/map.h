@@ -39,7 +39,7 @@ public:
 	//other methods
 	//map
 	void clearmap();
-
+	void map::fill(image* image_arr, int image_arr_size, int* weightage);
 	//camera
 	void centerOnPlayer(position playerpos);
 };
