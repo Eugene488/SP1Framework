@@ -11,7 +11,7 @@ public:
     ~fire();
 
     //other methods
-    void move(map&, WORD solids[], int listsize);
+    void move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY);
     void die(map& g_map, map& bg_map, map& bgc_map);
 };
 

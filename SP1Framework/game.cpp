@@ -29,7 +29,7 @@ map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //backgr
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
 float virusspawntime;
 float virusspawntimer;
-const int MAXENTITY = 20;
+const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
@@ -91,9 +91,7 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(5, 5), 10, 3, bgc_map, bg_map);
-    entities[2] = new fire(position(5, 6), 10, 2, bgc_map, bg_map);
-    entities[3] = new fire(position(5, 7), 10, 1, bgc_map, bg_map);
+    entities[1] = new fire(position(10, 10), 1, 3, bgc_map, bg_map);
 }
 
 //--------------------------------------------------------------
@@ -316,7 +314,7 @@ void updateGame()       // gameplay logic
                 else
                 {
                     entities[i]->setspdtimer(0);
-                    entities[i]->move(g_map, solids, size(solids));
+                    entities[i]->move(g_map, bg_map, bgc_map, solids, size(solids), entities, MAXENTITY);
                 }
             }
         }
@@ -695,12 +693,15 @@ void maskrenderout()
 }
 
 void spawnvirus() {
-    for (int i = 0; i < size(entities); i++)
+    if (virus::gettotal() < 20)
     {
-        if (entities[i] == NULL)
+        for (int i = 0; i < size(entities); i++)
         {
-            entities[i] = new virus(0.5f, g_map);
-            break;
+            if (entities[i] == NULL)
+            {
+                entities[i] = new virus(0.5f, g_map);
+                break;
+            }
         }
     }
 }

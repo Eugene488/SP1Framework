@@ -37,11 +37,62 @@ fire::~fire() {
 }
 
 //other methods
-void fire::move(map& g_map, WORD solids[], int listsize) {
-	
+void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
+	position futurloc;
+	int statechange = 0;
+	for (int i = 0; i < 8; i++)
+	{
+		futurloc = pos;
+		switch (i)
+		{
+		case 1:
+			futurloc.set('y', futurloc.get('y') - 1); break;
+		case 2:
+			futurloc.set('x', futurloc.get('x') + 1); futurloc.set('y', futurloc.get('y') - 1); break;
+		case 3:
+			futurloc.set('x', futurloc.get('x') + 1); break;
+		case 4:
+			futurloc.set('x', futurloc.get('x') + 1); futurloc.set('y', futurloc.get('y') + 1); break;
+		case 5:
+			futurloc.set('y', futurloc.get('y') + 1); break;
+		case 6:
+			futurloc.set('x', futurloc.get('x') - 1); futurloc.set('y', futurloc.get('y') + 1); break;
+		case 7:
+			futurloc.set('x', futurloc.get('x') - 1); break;
+		case 8:
+			futurloc.set('x', futurloc.get('x') - 1); futurloc.set('y', futurloc.get('y') - 1); break;
+		}
+		if (collisiondetection(solids, listsize, futurloc, g_map))
+		{
+			if (bgc_map.getmapposition(futurloc).gettext() != -21)
+			{
+				statechange = rand() % 2;
+				for (int i = 0; i < MAXENTITY; i++)
+				{
+					if (entities[i] == NULL)
+					{
+						entities[i] = new fire(futurloc, rand() % 5 + 2, hp - statechange, bgc_map, bg_map);
+						break;
+					}
+				}
+			}
+		}
+	}
+	hp--;
+	//updating map
+	if (hp == 2)
+	{
+		imagey = image(-21, 14);
+	}
+	else if (hp == 1)
+	{
+		imagey = image(-21, 12);
+	}
+	setpos(pos, bgc_map);
+	bg_map.setmapposition(pos, image(NULL, states_bg_colours[hp - 1]));
 }
 
 void fire::die(map& g_map, map& bg_map, map& bgc_map) {
 	bg_map.setmapposition(pos, image(NULL, 0));
-	bgc_map.setmapposition(pos, previmg);
+	bgc_map.setmapposition(pos, image(NULL, 96));
 }
