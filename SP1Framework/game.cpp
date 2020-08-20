@@ -91,7 +91,7 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(10, 10), 1, 3, bgc_map, bg_map);
+    entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
 }
 
 //--------------------------------------------------------------

@@ -66,12 +66,17 @@ void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 		{
 			if (bgc_map.getmapposition(futurloc).gettext() != -21)
 			{
-				statechange = rand() % 2;
+				statechange = rand() % 3 - 1;
+				int hpc = hp + statechange;
+				if (hpc > 3)
+				{
+					hpc = 3;
+				}
 				for (int i = 0; i < MAXENTITY; i++)
 				{
 					if (entities[i] == NULL)
 					{
-						entities[i] = new fire(futurloc, rand() % 5 + 2, hp - statechange, bgc_map, bg_map);
+						entities[i] = new fire(futurloc, rand() % 5 + 2, hpc, bgc_map, bg_map);
 						break;
 					}
 				}
@@ -93,6 +98,6 @@ void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 }
 
 void fire::die(map& g_map, map& bg_map, map& bgc_map) {
-	bg_map.setmapposition(pos, image(NULL, 0));
-	bgc_map.setmapposition(pos, image(NULL, 96));
+	bgc_map.setmapposition(pos, image(NULL, 0));
+	bg_map.setmapposition(pos, image(NULL, 96));
 }
