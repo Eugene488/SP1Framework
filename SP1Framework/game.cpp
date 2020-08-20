@@ -12,6 +12,7 @@
 #include "player.h"
 #include "virus.h"
 #include <random>
+#include "fire.h"
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -53,9 +54,6 @@ int idx[MAXENTITY]; //used for collision detection
 //--------------------------------------------------------------
 void init( void )
 {
-    //debugging things
-    g_map.setmapposition(position(5, 5), image('T', 4));
-
     //init variables
     srand(time(NULL));
     virusspawntime = 1;
@@ -91,6 +89,11 @@ void init( void )
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
+
+    //debugging things
+    entities[1] = new fire(position(5, 5), 10, 3, bgc_map, bg_map);
+    entities[2] = new fire(position(5, 6), 10, 2, bgc_map, bg_map);
+    entities[3] = new fire(position(5, 7), 10, 1, bgc_map, bg_map);
 }
 
 //--------------------------------------------------------------
@@ -322,7 +325,7 @@ void updateGame()       // gameplay logic
         {
             if (entities[i] != NULL && entities[i]->gethp() <= 0)
             {
-                entities[i]->die(g_map);
+                entities[i]->die(g_map, bg_map, bgc_map);
                 entities[i] = NULL;
             }
         }
@@ -374,28 +377,21 @@ void moveCharacter()
     }
     else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
     {
-        while (true) {
-            getentityfrompos(&idx[0], futurloc, g_map);
-            if (idx[0] != -1)
+        getentityfrompos(&idx[0], futurloc, g_map);
+        if (idx[0] != -1)
+        {
+            for (int i = 0; i < MAXENTITY; i++)
             {
-                for (int i = 0; i < MAXENTITY; i++)
+                if (idx == NULL)
                 {
-                    if (idx == NULL)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        entities[idx[i]]->sethp(0);
-                        entities[idx[i]]->setpos(position(0, 0), g_map);
-                        entities[0]->sethp(entities[0]->gethp() - 1);
-                        //TODO other negative effects
-                    }
+                    break;
                 }
-            }
-            else
-            {
-                break;
+                else
+                {
+                    entities[idx[i]]->sethp(0);
+                    entities[0]->sethp(entities[0]->gethp() - 1);
+                    //TODO other negative effects
+                }
             }
         }
     }
@@ -523,6 +519,7 @@ void renderMap()
                 c.X = x0;
                 c.Y = y0;
                 bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
+                //rendering g_map
                 if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
                     g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
@@ -535,6 +532,7 @@ void renderMap()
                         g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
                     }
                 }
+                //rendering bgc_map
                 else
                 {
                     bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
@@ -733,12 +731,13 @@ void getentityfrompos(int* ptr, position pos, map& g_map) {
 }
 
 /*list of colours used:
+g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
 213  -> virus (fg: purple  bg: magenta  text: 15)
  10  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+
+bg_map
 reds -> fire  (fg: reds    bg: reds     text: -21)
-
-
 */

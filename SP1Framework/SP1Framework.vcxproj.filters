@@ -12,6 +12,7 @@
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="virus.cpp" />
+    <ClCompile Include="fire.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framework\console.h">
@@ -42,6 +43,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="virus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fire.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

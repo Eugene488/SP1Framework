@@ -39,6 +39,6 @@ public:
 	virtual void move(map&, WORD solids[], int listsize) = 0;
 	bool collisiondetection(WORD[], int, position&, map&);
 	virtual void OnTriggerEnter(position, map&);
-	void die(map&);
+	virtual void die(map& g_map, map& bg_map, map& bgc_map);
 };
 
