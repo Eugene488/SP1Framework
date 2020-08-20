@@ -572,7 +572,7 @@ void renderInputEvents()
     if (true)
     {
         int* idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
-        if (*idx != -1)
+        if (idx[0] != -1)
         {
             ss << entities[idx[0]]->getname();
             g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
@@ -680,11 +680,13 @@ int* getentityfrompos(position pos, map& g_map) {
                     a[i2] = i;
                 }
             }
-            return a;
         }
     }
-    a[0] = -1;
-    return a; //-1 when no entity is in that position
+    if (a[0] == NULL)
+    {
+        a[0] = -1;
+    }
+    return a; //a[0] == -1 when no entity is in that position
 }
 
 /*list of colours used:
