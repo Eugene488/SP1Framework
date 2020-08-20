@@ -37,6 +37,7 @@ enum EKEYS
     K_LEFT,
     K_RIGHT,
     K_ESCAPE,
+    K_ENTER,
     K_SPACE,
     K_T,
     K_COUNT
@@ -50,7 +51,9 @@ enum EGAMESTATES
     S_COUNT,
     S_PAUSE,
     S_RESTART,
-    S_MAIN
+    S_MAIN,
+    S_OVER,
+    S_TUTORIAL
 
 
 };
@@ -88,13 +91,14 @@ void updatePause(); // check user input
 void renderMask(); // spawns mask
 void renderPause(); // displays pause menu
 void Restart(); // restarts game
-void mainMenu(); // mainmenu
-
+void mainMenu(); // main menu
+void rendertutorialscreen(); // tutorial screen
 void renderWall();
 void maskrenderout();
 
 void renderMask();
-
+void renderOver(); // render Game Over
+void updateOver(); // update over
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
