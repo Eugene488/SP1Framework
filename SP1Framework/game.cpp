@@ -18,6 +18,7 @@ double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 int maplevel = 1;
+
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 int MAPSIZEX = 200;
@@ -39,6 +40,9 @@ Console g_Console(80, 25, "Mask of Yendor");
 
 //debugging things
 int debugtext; //will be rendered at mousepos
+
+//others
+int idx[MAXENTITY]; //used for collision detection
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -371,7 +375,7 @@ void moveCharacter()
     else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
     {
         while (true) {
-            int* idx = getentityfrompos(futurloc, g_map);
+            getentityfrompos(&idx[0], futurloc, g_map);
             if (idx[0] != -1)
             {
                 for (int i = 0; i < MAXENTITY; i++)
@@ -612,7 +616,7 @@ void renderInputEvents()
     //tooltip
     if (true)
     {
-        int* idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+        getentityfrompos(&idx[0], position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
         if (idx[0] != -1)
         {
             ss << entities[idx[0]]->getname();
@@ -704,11 +708,10 @@ void spawnvirus() {
 }
 
 //returns the entity that is in pos of g_map
-int* getentityfrompos(position pos, map& g_map) {
-    int a[MAXENTITY];
+void getentityfrompos(int* ptr, position pos, map& g_map) {
     for (int i = 0; i < MAXENTITY; i++)
     {
-        a[i] = NULL;
+        ptr[i] = NULL;
     }
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -716,18 +719,17 @@ int* getentityfrompos(position pos, map& g_map) {
         {
             for (int i2 = 0; i2 < MAXENTITY; i2++)
             {
-                if (a[i2] == NULL)
+                if (ptr[i2] == NULL)
                 {
-                    a[i2] = i;
+                    ptr[i2] = i;
                 }
             }
         }
     }
-    if (a[0] == NULL)
+    if (ptr[0] == NULL)
     {
-        a[0] = -1;
+        ptr[0] = -1; //ptr[0] == -1 when no entity is in that position
     }
-    return a; //a[0] == -1 when no entity is in that position
 }
 
 /*list of colours used:

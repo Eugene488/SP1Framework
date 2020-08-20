@@ -87,5 +87,5 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyb
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
 
 void spawnvirus();
-int* getentityfrompos(position pos, map& g_map);
+void getentityfrompos(int* pointer_to_change, position pos, map& g_map);
 #endif // _GAME_H
