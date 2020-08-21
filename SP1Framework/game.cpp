@@ -103,7 +103,7 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
+    entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
     entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
 }
 
@@ -631,8 +631,9 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
-    //ss << "debug text: " << debugtext;
-    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
+    debugtext = g_player->gethp();
+    ss << "debug text: " << debugtext;
+    //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
