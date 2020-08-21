@@ -19,7 +19,7 @@ SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 int maplevel = 1;
 // Game specific variables here
-EGAMESTATES g_eGameState = S_MAIN; // initial state
+EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(100, 50, position(0,0), position(80, 25));
 float virusspawntime;
 float virusspawntimer;
@@ -173,7 +173,7 @@ void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
         break;
     case S_MAIN:gameplayMouseHandler(mouseEvent);
         break;
-    case S_OVER:gameplayMouseHandler(mouseEvent);
+    case S_OVER: // nothing
         break;
     case S_TUTORIAL: // nothing
         break;
@@ -288,30 +288,17 @@ void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
 //--------------------------------------------------------------
 void update(double dt)
 {
-    // get the delta time
-    g_dElapsedTime -= dt;
+
     g_dDeltaTime = dt;
-
-    //increasing spawn timer for virus
-    virusspawntimer += dt;
-
-    // increasing spd timer for entities
-    for (int i = 0; i < MAXENTITY; i++)
-    {
-        if (entities[i] != NULL)
-        {
-            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
-        }
-    }
-
     switch (g_eGameState)
     {
-        case S_SPLASHSCREEN : //splashScreenWait(); // game logic for the splash screen
+        case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
         case S_GAME:
 
             // get the delta time
             g_dElapsedTime -= dt;
+            
             //increasing spawn timer for virus
             virusspawntimer += dt;
 
@@ -331,9 +318,9 @@ void update(double dt)
         case S_RESTART:
             Restart();
             break;
-        case S_MAIN: // nothing
+        case S_MAIN: mainMenu();
             break;
-        case S_OVER: // nothing
+        case S_OVER: renderOver();
             break;
     }
 
@@ -496,7 +483,7 @@ void render()
     clearScreen();      // clears the current screen and draw from scratch 
     switch (g_eGameState)
     {
-    case S_SPLASHSCREEN:// renderSplashScreen();
+    case S_SPLASHSCREEN:renderSplashScreen();
         break;
     case S_MAIN:mainMenu();
         break;
@@ -718,8 +705,7 @@ void renderOver()
     if (g_skKeyEvent[K_ENTER].keyReleased)
     {
         g_eGameState = S_MAIN;
-        g_skKeyEvent[K_ENTER].keyReleased = false;
-        g_skKeyEvent[K_ENTER].keyDown = false;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
     ss.str("");
     ss << "Press <Enter> to restart";
@@ -777,6 +763,7 @@ void renderPause()
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
         g_eGameState = S_GAME;
+        g_mouseEvent.buttonState = 0;
     }
     ss.str("");
     ss << "Restart";
@@ -786,6 +773,7 @@ void renderPause()
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
         g_eGameState = S_RESTART;
+        g_mouseEvent.buttonState = 0;
     }
     ss.str("");
     ss << "Exit to main menu";
@@ -795,6 +783,7 @@ void renderPause()
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
         g_eGameState = S_MAIN;
+        g_mouseEvent.buttonState = 0;
     }
 }
 
@@ -815,6 +804,7 @@ void mainMenu()
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
         g_eGameState = S_TUTORIAL;
+        g_mouseEvent.buttonState = 0;
     }
     ss.str("");
     ss << "Exit";
@@ -855,6 +845,7 @@ void rendertutorialscreen() // prints out instructions
     if (g_skKeyEvent[K_ENTER].keyReleased)
     {
         g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
 
@@ -893,8 +884,8 @@ void updatePause()
 {
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
     {
-        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
         g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
 /*list of colours used:
