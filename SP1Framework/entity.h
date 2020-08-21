@@ -40,5 +40,7 @@ public:
 	bool collisiondetection(WORD[], int, position&, map&);
 	virtual void OnTriggerEnter(position, map&);
 	virtual void die(map& g_map, map& bg_map, map& bgc_map);
+	string triggerdetection(map& g_map, map& bg_map, map& bgc_map, position position_to_check, string map_to_check);
+	virtual void update(map& g_map, map& bg_map, map& bgc_map, map& fg_map);
 };
 

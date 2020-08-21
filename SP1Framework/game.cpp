@@ -30,8 +30,11 @@ int MAPSIZEY = 200;
 map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
 map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
+map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
 float virusspawntime;
 float virusspawntimer;
+float updatetime = 0.5f;
+float updatetimer = 0;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
@@ -325,8 +328,7 @@ void update(double dt)
         // get the delta time
         g_dElapsedTime -= dt;
 
-        //increasing spawn timer for virus
-        virusspawntimer += dt;
+        updatetimer += dt;
 
         // increasing spd timer for entities
         for (int i = 0; i < MAXENTITY; i++)
@@ -364,6 +366,18 @@ void updateGame()       // gameplay logic
 {
     //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
+    //updating things based on delta time for entities
+    if (updatetimer >= updatetime)
+    {
+        updatetimer = 0;
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] != NULL)
+            {
+                entities[i]->update(g_map, bg_map, bgc_map, fg_map);
+            }
+        }
+    }
     //movement for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -603,29 +617,36 @@ void renderMap()
                 c.Y = y0;
                 bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
                 //rendering g_map
-                if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
+                if (fg_map.getmapposition(position(x, y)).gettext() != NULL || fg_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
-                    if (g_image_colour > 15)
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
-                    }
-                    else
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
-                    }
+                    g_Console.writeToBuffer(c, fg_map.getmapposition(position(x, y)).gettext(), fg_map.getmapposition(position(x, y)).getcolour());
                 }
-                //rendering bgc_map
                 else
                 {
-                    bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
-                    if (bgc_image_colour > 15)
+                    if (g_map.getmapposition(position(x, y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
+                        if (g_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
+                        }
                     }
+                    //rendering bgc_map
                     else
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
+                        if (bgc_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        }
                     }
                 }
             }
@@ -691,7 +712,7 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
-    debugtext = g_player->gethp();
+    //debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
@@ -1397,7 +1418,7 @@ void mapchange(int x)
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
 213  -> virus (fg: purple  bg: magenta  text: 15)
- 10  -> player(fg: light_green bg: NULL text: 1)
+  0  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
 

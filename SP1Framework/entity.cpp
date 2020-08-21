@@ -68,3 +68,35 @@ void entity::die(map& g_map, map& bg_map, map& bgc_map) {
 	g_map.setmapposition(pos, image(NULL, 0));
 	delete this;
 }
+
+void entity::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map) {
+	//do nothing
+}
+
+string entity::triggerdetection(map& g_map, map& bg_map, map& bgc_map, position position_to_check, string map_to_check) {
+	if (map_to_check == "g_map")
+	{
+		image gimg = g_map.getmapposition(position_to_check);
+		if (gimg.getcolour() == static_cast<WORD>(213))
+		{
+			return "virus";
+		}
+		else if (gimg.getcolour() == static_cast<WORD>(0) && gimg.gettext() == static_cast<char>(1))
+		{
+			return "player";
+		}
+		else if (gimg.getcolour() == static_cast<WORD>(0x0B))
+		{
+			return "mask";
+		}
+	}
+	else if (map_to_check == "bgc_map")
+	{
+		image bgcimg = bgc_map.getmapposition(position_to_check);
+		if (bgcimg.gettext() == static_cast<char>(-21))
+		{
+			return "fire";
+		}
+	}
+	return "none";
+}
