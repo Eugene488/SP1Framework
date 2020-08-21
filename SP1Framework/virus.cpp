@@ -1,10 +1,7 @@
 #include "virus.h"
 
-<<<<<<< HEAD
 int virus::totalvirus = 0;
 
-=======
->>>>>>> map-building
 virus::virus(float spd, map& g_map){
 	this->spdtimer = 0;
 	this->spd = spd;
@@ -15,16 +12,12 @@ virus::virus(float spd, map& g_map){
 		position spawnloc = position(rand() % (g_map.getmapsize('x')-3) + 1, rand() % (g_map.getmapsize('y')-2) + 1);
 		if (g_map.getmapposition(spawnloc).gettext() == NULL && static_cast<WORD>(g_map.getmapposition(spawnloc).getcolour()) == static_cast<WORD>(0))
 		{
-<<<<<<< HEAD
 			totalvirus += 1;
-=======
->>>>>>> map-building
 			setpos(spawnloc, g_map);
 			break;
 		}
 	}
 }
-<<<<<<< HEAD
 virus::virus(position pos, float spd):entity(pos, image(15, 5 + 208), spd, 1, "virus"){
 	totalvirus += 1;
 }
@@ -40,19 +33,6 @@ int virus::gettotal() {
 
 //other methods
 void virus::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) { //1:up 2:upright 3:right...
-=======
-virus::virus(position pos, float spd):entity(pos, image(15, 5 + 208), spd, 1, "virus"){}
-virus::~virus() {
-	//do nothing
-}
-
-//getters
-
-//setters
-
-//other methods
-void virus::move(map& g_map, WORD solids[], int listsize) { //1:up 2:upright 3:right...
->>>>>>> map-building
 	int dir = rand() % 8 + 1;
 	position futurloc = pos;
 	switch (dir)

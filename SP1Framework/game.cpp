@@ -39,6 +39,13 @@ player* g_player;
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
+//background random generation
+//nature bgc
+image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
+int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
+
+image bg_images_green[] = { image(NULL, 160) };
+int bg_weightage_green[] = { 2 };
 //debugging things
 int debugtext; //will be rendered at mousepos
 
@@ -67,13 +74,9 @@ void init( void )
     //init maps
     renderWall(); //creating the border walls
     //background char map
-    image images[] = {image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6)};
-    int weightage[] = {      80,        80,              1,              1,                1      ,         1 };
-    bgc_map.fill(images, size(images), weightage);
+    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
     //background colour only map
-    image images2[] = { image(NULL, 160)};
-    int weightage2[] = {    2           };
-    bg_map.fill(images2, size(images2), weightage2);
+    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
     // Setting attributes of player
     g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
@@ -710,6 +713,17 @@ void getentityfrompos(int* ptr, position pos, map& g_map) {
     }
 }
 
+//deletes all entities except for the player
+void clearentities() {
+    for (int i = 1; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->die(g_map, bg_map, bgc_map);
+            entities[i] = NULL;
+        }
+    }
+}
 
 void renderMask()
 {
@@ -770,7 +784,14 @@ void maskrenderout()
 
 void mapchange(int x)
 {
+    clearentities();
     g_map.clearmap();
+    bg_map.clearmap();
+    bgc_map.clearmap();
+    //background char map
+    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    //background colour only map
+    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
     WORD charColor = 240;
 
     if (maplevel == 1)

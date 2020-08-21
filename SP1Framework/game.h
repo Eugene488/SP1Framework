@@ -89,4 +89,5 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mous
 
 void spawnvirus();
 void getentityfrompos(int* pointer_to_change, position pos, map& g_map);
+void clearentities();
 #endif // _GAME_H
