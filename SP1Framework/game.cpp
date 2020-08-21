@@ -27,6 +27,7 @@ int MAPSIZEY = 200;
 map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
 map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
+EGAMESTATES g_eGameState = S_MAIN; // initial state
 float virusspawntime;
 float virusspawntimer;
 const int MAXENTITY = 50;
@@ -83,7 +84,7 @@ void init( void )
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
     // sets the initial state for the game
-    g_eGameState = S_SPLASHSCREEN;
+    g_eGameState = S_MAIN;
 
     // sets the width, height and the font name to use in the console
     g_Console.setConsoleFont(0, 16, L"");
@@ -153,6 +154,14 @@ void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
         break;
     case S_GAME: gameplayKBHandler(keyboardEvent); // handle gameplay keyboard event 
         break;
+    case S_PAUSE:pausekeyboardHandler(keyboardEvent);
+        break;
+    case S_MAIN: // nothing
+        break;
+    case S_OVER:gameplayKBHandler(keyboardEvent);
+        break;
+    case S_TUTORIAL:gameplayKBHandler(keyboardEvent);
+        break;
     }
 }
 
@@ -180,6 +189,16 @@ void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
         break;
     case S_GAME: gameplayMouseHandler(mouseEvent); // handle gameplay mouse event
         break;
+    case S_PAUSE:gameplayMouseHandler(mouseEvent);
+        break;
+    case S_RESTART:Restart();
+        break;
+    case S_MAIN:gameplayMouseHandler(mouseEvent);
+        break;
+    case S_OVER:gameplayMouseHandler(mouseEvent);
+        break;
+    case S_TUTORIAL: // nothing
+        break;
     }
 }
 
@@ -203,7 +222,8 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case VK_LEFT: key = K_LEFT; break; 
     case VK_RIGHT: key = K_RIGHT; break; 
     case VK_SPACE: key = K_SPACE; break;
-    case VK_ESCAPE: key = K_ESCAPE; break; 
+    case VK_ESCAPE: key = K_ESCAPE; break;
+    case VK_RETURN: key = K_ENTER; break;
     //WASD cases
     case 0x57: key = K_W; break;
     case 0x41: key = K_A; break;
@@ -243,6 +263,35 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
 }
 
 
+void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
+{
+    // here, we map the key to our enums
+    EKEYS key = K_COUNT;
+    switch (keyboardEvent.wVirtualKeyCode)
+    {
+    case VK_ESCAPE: key = K_ESCAPE; break;
+        //WASD cases
+    case 0x57: key = K_W; break;
+    case 0x41: key = K_A; break;
+    case 0x53: key = K_S; break;
+    case 0x44: key = K_D; break;
+    }
+    // a key pressed event would be one with bKeyDown == true
+    // a key released event would be one with bKeyDown == false
+    // if no key is pressed, no event would be fired.
+    // so we are tracking if a key is either pressed, or released
+    if (key != K_COUNT)
+    {
+        g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
+        g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
+    }
+}
+
+
+
+
+
+
 
 
 //--------------------------------------------------------------
@@ -279,14 +328,36 @@ void update(double dt)
 
     switch (g_eGameState)
     {
-        case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
+        case S_SPLASHSCREEN : //splashScreenWait(); // game logic for the splash screen
             break;
         case S_GAME:
             if (g_player->getItimer() <= 0.5f)
             {
                 g_player->setItimer(g_player->getItimer() + dt);
+            // get the delta time
+            g_dElapsedTime -= dt;
+            //increasing spawn timer for virus
+            virusspawntimer += dt;
+
+            // increasing spd timer for entities
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[i] != NULL)
+                {
+                    entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+                }
             }
             updateGame(); // gameplay logic when we are in the game
+            break;
+        case S_PAUSE:
+            updatePause();
+            break;
+        case S_RESTART:
+            Restart();
+            break;
+        case S_MAIN: // nothing
+            break;
+        case S_OVER: // nothing
             break;
     }
 
@@ -435,7 +506,10 @@ void processUserInput()
 {
     // quits the game if player hits the escape key
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
-        g_bQuitGame = true;
+    {
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        g_eGameState = S_PAUSE;
+    }
 }
 
 //--------------------------------------------------------------
@@ -451,10 +525,17 @@ void render()
     clearScreen();      // clears the current screen and draw from scratch 
     switch (g_eGameState)
     {
-    case S_SPLASHSCREEN: renderSplashScreen();
+    case S_SPLASHSCREEN:// renderSplashScreen();
+        break;
+    case S_MAIN:mainMenu();
         break;
     case S_GAME: renderGame();
         break;
+    case S_PAUSE:renderPause();
+        break;
+    case S_OVER:renderOver();
+        break;
+    case S_TUTORIAL:rendertutorialscreen();
     }
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
@@ -678,27 +759,40 @@ void renderMask()
     }
     else if (maplevel == 2)
     {
-        
         WORD charColor = 0x0B;
         g_map.setmapposition(position(20, 10), image('M', charColor));
     }
 }
 
-//render border walls
-void renderWall()
+void renderOver()
 {
-    for (int i = 0; i < g_map.getmapsize('x'); i++)
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "GAME OVER!";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
     {
-        WORD charColor = 240; //bg white
-        g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
-        g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
-        for (int i = 0; i < g_map.getmapsize('y'); i++)
-        {
-            g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
-            g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
-        }
+        g_eGameState = S_MAIN;
+        g_skKeyEvent[K_ENTER].keyReleased = false;
+        g_skKeyEvent[K_ENTER].keyDown = false;
     }
+    ss.str("");
+    ss << "Press <Enter> to restart";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
 }
+
+void updateOver()
+{
+
+}
+
+//render border walls
 
 void maskrenderout()
 {
@@ -745,6 +839,139 @@ void getentityfrompos(int* ptr, position pos, map& g_map) {
     }
 }
 
+void renderPause()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Resume";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_GAME;
+    }
+    ss.str("");
+    ss << "Restart";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp()+1;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_RESTART;
+    }
+    ss.str("");
+    ss << "Exit to main menu";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() + 11;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_MAIN;
+    }
+}
+
+void Restart()
+{
+}
+
+void mainMenu()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Start";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_TUTORIAL;
+    }
+    ss.str("");
+    ss << "Exit";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() - 1;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_bQuitGame = true;
+    }
+}
+
+void rendertutorialscreen() // prints out instructions
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Instructions:"; 
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);   
+    ss.str("");
+    ss << "W-A-S-D to move up/left/down/right";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Goal is to collect the mask and avoid the virus!";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Press <Enter> to continue";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_GAME;
+    }
+}
+
+//render border walls
+void renderWall()
+{
+    for (int i = 0; i < g_map.getmapsize('x'); i++)
+    {
+        WORD charColor = 240; //bg white
+        g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
+        g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
+        for (int i = 0; i < g_map.getmapsize('y'); i++)
+        {
+            g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
+            g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
+        }
+    }
+}
+
+
+
+
+
+
+
+/*list of colours used:
+240 -> walls (fg: NULL    bg: white)
+  5 -> virus (fg: purple  bg: NULL)
+ 10 -> player(fg: light_green bg: NULL)
+
+
+
+*/
+
+void updatePause()
+{
+    if (g_skKeyEvent[K_ESCAPE].keyReleased)
+    {
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        g_eGameState = S_GAME;
+    }
+}
 /*list of colours used:
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
