@@ -9,10 +9,14 @@
 #include "map.h"
 #include <stdlib.h>
 #include <time.h>
+#include <random>
+
+#include "entity.h"
+#include "fire.h"
 #include "player.h"
 #include "virus.h"
-#include <random>
-#include "fire.h"
+#include "virus_spawner.h"
+
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
@@ -26,13 +30,18 @@ int MAPSIZEY = 200;
 map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
 map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
+map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
 float virusspawntime;
 float virusspawntimer;
+float updatetime = 0.5f;
+float updatetimer = 0;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
-WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
-//current list: 240 =   white  = walls
+WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
+/*current list: 240  =   white  = walls
+                2+80 =  bg:purple fg:green = virus_spawner
+*/
 bool mouse_tooltip_enabled;
 player* g_player;
 
@@ -43,11 +52,12 @@ Console g_Console(80, 25, "Mask of Yendor");
 //nature bgc
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
-
+//nature bg
 image bg_images_green[] = { image(NULL, 160) };
 int bg_weightage_green[] = { 2 };
+
 //debugging things
-int debugtext; //will be rendered at mousepos
+float debugtext; //will be rendered at mousepos
 
 //others
 int idx[MAXENTITY]; //used for collision detection
@@ -63,6 +73,7 @@ void init( void )
 {
     //init variables
     srand(time(NULL));
+    mapchange(1);
     virusspawntime = 1;
     mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
@@ -95,8 +106,8 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
-    mapchange(1);
+    entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
+    entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
 }
 
 //--------------------------------------------------------------
@@ -312,12 +323,12 @@ void update(double dt)
     case S_SPLASHSCREEN: splashScreenWait(); // game logic for the splash screen
         break;
     case S_GAME:
-
+    //increasing spawn timer for virus
+    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
         // get the delta time
         g_dElapsedTime -= dt;
 
-        //increasing spawn timer for virus
-        virusspawntimer += dt;
+        updatetimer += dt;
 
         // increasing spd timer for entities
         for (int i = 0; i < MAXENTITY; i++)
@@ -356,6 +367,18 @@ void updateGame()       // gameplay logic
 {
     //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
+    //updating things based on delta time for entities
+    if (updatetimer >= updatetime)
+    {
+        updatetimer = 0;
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] != NULL)
+            {
+                entities[i]->update(g_map, bg_map, bgc_map, fg_map);
+            }
+        }
+    }
     //movement for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -471,7 +494,7 @@ void moveCharacter()
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
-        debugtext = entities[0]->getimage().gettext();
+        //debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
         g_skKeyEvent[K_SPACE].keyDown = 0;
         g_skKeyEvent[K_SPACE].keyReleased = 0;
@@ -595,29 +618,36 @@ void renderMap()
                 c.Y = y0;
                 bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
                 //rendering g_map
-                if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
+                if (fg_map.getmapposition(position(x, y)).gettext() != NULL || fg_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
-                    if (g_image_colour > 15)
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
-                    }
-                    else
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
-                    }
+                    g_Console.writeToBuffer(c, fg_map.getmapposition(position(x, y)).gettext(), fg_map.getmapposition(position(x, y)).getcolour());
                 }
-                //rendering bgc_map
                 else
                 {
-                    bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
-                    if (bgc_image_colour > 15)
+                    if (g_map.getmapposition(position(x, y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
+                        if (g_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
+                        }
                     }
+                    //rendering bgc_map
                     else
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
+                        if (bgc_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        }
                     }
                 }
             }
@@ -683,13 +713,19 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+
     debugtext = g_player->gethp();
+    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
+
+    //debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
+    //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
+
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
     //tooltip
-    if (true)
+    if (mouse_tooltip_enabled)
     {
         getentityfrompos(&idx[0], position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
         if (idx[0] != -1)
@@ -810,6 +846,13 @@ void renderMask()
 
         WORD charColor = 0x0C;
         g_map.setmapposition(position(79, 72), image('M', charColor));
+
+    }
+    else if (maplevel == 5)
+    {
+        g_bQuitGame = true;
+
+
     }
 }
 
@@ -1388,7 +1431,7 @@ void mapchange(int x)
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
 213  -> virus (fg: purple  bg: magenta  text: 15)
- 10  -> player(fg: light_green bg: NULL text: 1)
+  0  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
 

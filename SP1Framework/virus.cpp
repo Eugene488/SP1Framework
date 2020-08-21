@@ -1,6 +1,7 @@
 #include "virus.h"
 
 int virus::totalvirus = 0;
+int virus::maxvirus = 20;
 
 virus::virus(float spd, map& g_map){
 	this->spdtimer = 0;
@@ -18,8 +19,9 @@ virus::virus(float spd, map& g_map){
 		}
 	}
 }
-virus::virus(position pos, float spd):entity(pos, image(15, 5 + 208), spd, 1, "virus"){
+virus::virus(position pos, float spd, map& g_map):entity(pos, image(15, 5 + 208), spd, 1, "virus"){
 	totalvirus += 1;
+	setpos(pos, g_map);
 }
 virus::~virus() {
 	totalvirus -= 1;
@@ -29,7 +31,13 @@ virus::~virus() {
 int virus::gettotal() {
 	return totalvirus;
 }
+int virus::getmax() {
+	return maxvirus;
+}
 //setters
+void virus::setmax(int max) {
+	maxvirus = max;
+}
 
 //other methods
 void virus::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) { //1:up 2:upright 3:right...

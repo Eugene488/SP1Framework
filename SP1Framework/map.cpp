@@ -36,6 +36,10 @@ map::map(int size_x, int size_y, position camerapos, position camerasize) :size_
 }
 
 map::~map() {
+	for (int x = 0; x < size_x; x++)
+	{
+		delete mapvalues[x];
+	}
 	delete mapvalues;
 }
 
