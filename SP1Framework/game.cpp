@@ -378,7 +378,7 @@ void moveCharacter()
     }
     //trigger detection for g_map
     WORD g_mapcolour = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
-    if (g_mapcolour == static_cast<WORD>(0x0B)) //mask
+    if (g_mapcolour == static_cast<WORD>(0x0C)) //mask
     {
         maplevel++;
         maskrenderout();
@@ -624,7 +624,7 @@ void renderInputEvents()
     //debugging
     ss.str("");
     debugtext = g_player->gethp();
-    ss << "debug text: " << debugtext;
+    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
@@ -729,27 +729,31 @@ void renderMask()
 {
     if (maplevel == 1)
     {
-        WORD charColor = 0x0B;
+        WORD charColor = 0x0C;
         g_map.setmapposition(position(190, 24), image('M', charColor));
     }
     else if (maplevel == 2)
     {
 
-        WORD charColor = 0x0B;
+        WORD charColor = 0x0C;
         g_map.setmapposition(position(20, 10), image('M', charColor));
 
     }
     else if (maplevel == 3)
     {
 
-        WORD charColor = 0x0B;
+        WORD charColor = 0x0C;
         g_map.setmapposition(position(30, 10), image('M', charColor));
     }
     else if (maplevel == 4)
     {
 
-        WORD charColor = 0x0B;
-        g_map.setmapposition(position(40, 10), image('M', charColor));
+        WORD charColor = 0x0C;
+        g_map.setmapposition(position(79, 72), image('M', charColor));
+    }
+    else if (maplevel == 5)
+    {
+        g_bQuitGame = true;
     }
 }
 
