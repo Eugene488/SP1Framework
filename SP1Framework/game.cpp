@@ -377,7 +377,7 @@ void updateGame()       // gameplay logic
         {
             if (entities[i] != NULL)
             {
-                entities[i]->update(g_map, bg_map, bgc_map, fg_map);
+                entities[i]->update(g_map, bg_map, bgc_map, fg_map, g_player);
             }
         }
     }
@@ -716,7 +716,7 @@ void renderInputEvents()
     //debugging
     ss.str("");
 
-    debugtext = g_player->gethp();
+    //debugtext = g_player->gethp();
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
     //debugtext = g_player->gethp();

@@ -16,27 +16,54 @@ void NPC::displaytext(string* sentence, int lines, WORD textcolour, map& fg_map)
 		fg_map.setmapposition(position(pos.get('x') - sentence[i].length() / 2, pos.get('y') - (lines - i)), sentence[i], textcolour);
 	}
 }
-void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map) {
-	if (currentsentenceposition <= dialogue.length())
+void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_player) {
+	float distancefromplayer = sqrt((abs(g_player->getpos().get('x') - pos.get('x')) ^ 2) + (abs(g_player->getpos().get('y') - pos.get('y')) ^ 2));
+	extern float debugtext;
+	//debugtext = distancefromplayer;
+	if (distancefromplayer <= 3)
 	{
-		char char_to_add = dialogue[currentsentenceposition];
-		if (char_to_add == '`')
+		if (currentsentenceposition <= dialogue.length())
 		{
-			currentsentencenumber += 1;
-			displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
-			int lengthy = currentsentences[currentsentencenumber - 2].length();
-			for (int i = 0; i < lengthy; i++)
+			char char_to_add = dialogue[currentsentenceposition];
+			if (char_to_add == '`')
 			{
-				fg_map.clearmap();
-				fg_map.setmapposition(position(pos.get('x') - lengthy + i, pos.get('y') - (currentsentencenumber - 2)), image(NULL, 0));
+				currentsentencenumber += 1;
+				displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
+				int lengthy = currentsentences[currentsentencenumber - 2].length();
+				for (int i = 0; i < lengthy; i++)
+				{
+					fg_map.setmapposition(position(pos.get('x') - lengthy/2 + i, pos.get('y') - 1), image(NULL, 0));
+				}
+
 			}
-			
+			else
+			{
+				currentsentences[currentsentencenumber - 1] += char_to_add;
+				displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
+			}
+			currentsentenceposition += 1;
+		}
+	}
+	else
+	{
+		if (currentsentences[0] == "" && currentsentences[1] == "" && currentsentences[2] == "")
+		{
+			//do nothing
 		}
 		else
 		{
-			currentsentences[currentsentencenumber - 1] += char_to_add;
-			displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
+			debugtext += 1;
+			for (int i = 0; i < currentsentencenumber; i++)
+			{
+				int lengthy = currentsentences[i].length();
+				for (int i2 = 0; i2 < lengthy; i2++)
+				{
+					fg_map.setmapposition(position(pos.get('x') - lengthy/2 + i2, pos.get('y') - (currentsentencenumber - i)), image(NULL, 0));
+				}
+				currentsentences[i] = "";
+			}
+			currentsentencenumber = 1;
+			currentsentenceposition = 0;
 		}
-		currentsentenceposition += 1;
 	}
 }
