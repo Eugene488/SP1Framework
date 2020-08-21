@@ -39,7 +39,8 @@ enum EKEYS
     K_ESCAPE,
     K_SPACE,
     K_T,
-    K_COUNT
+    K_COUNT,
+    K_ENTER
 };
 
 // Enumeration for the different screen states
@@ -47,7 +48,12 @@ enum EGAMESTATES
 {
     S_SPLASHSCREEN,
     S_GAME,
-    S_COUNT
+    S_COUNT,
+    S_PAUSE,
+    S_RESTART,
+    S_MAIN,
+    S_OVER,
+    S_TUTORIAL
 };
 
 // struct for the game character
@@ -78,12 +84,19 @@ void renderInputEvents();   // renders the status of input events
 void renderWall();
 void maskrenderout();
 void mapchange(int x);
+void updatePause(); // check user input
+void renderMask(); // spawns mask
+void renderPause(); // displays pause menu
+void Restart(); // restarts game
+void mainMenu(); // main menu
+void rendertutorialscreen(); // tutorial screen
+void renderOver();
 
 void renderMask();
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
-
+void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
 
