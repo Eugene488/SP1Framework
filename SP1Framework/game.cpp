@@ -346,6 +346,7 @@ void update(double dt)
         updatePause();
         break;
     case S_RESTART:
+        maplevel = 1;
         Restart();
         break;
     case S_MAIN: mainMenu();
@@ -714,9 +715,14 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+
+    debugtext = g_player->gethp();
+    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
+
     //debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
+
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
@@ -842,6 +848,13 @@ void renderMask()
 
         WORD charColor = 0x0C;
         g_map.setmapposition(position(79, 72), image('M', charColor));
+
+    }
+    else if (maplevel == 5)
+    {
+        g_bQuitGame = true;
+
+
     }
 }
 
@@ -1471,6 +1484,7 @@ void renderPause()
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
+        Restart();
         g_eGameState = S_MAIN;
         g_mouseEvent.buttonState = 0;
     }
@@ -1478,6 +1492,10 @@ void renderPause()
 
 void Restart()
 {
+    shutdown();
+    init();
+    g_eGameState = S_GAME;
+    
 }
 
 void mainMenu()
