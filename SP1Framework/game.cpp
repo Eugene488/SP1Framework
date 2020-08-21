@@ -9,10 +9,14 @@
 #include "map.h"
 #include <stdlib.h>
 #include <time.h>
+#include <random>
+
+#include "entity.h"
+#include "fire.h"
 #include "player.h"
 #include "virus.h"
-#include <random>
-#include "fire.h"
+#include "virus_spawner.h"
+
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
@@ -31,8 +35,10 @@ float virusspawntimer;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
-WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
-//current list: 240 =   white  = walls
+WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
+/*current list: 240  =   white  = walls
+                2+80 =  bg:purple fg:green = virus_spawner
+*/
 bool mouse_tooltip_enabled;
 player* g_player;
 
@@ -43,11 +49,12 @@ Console g_Console(80, 25, "Mask of Yendor");
 //nature bgc
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
-
+//nature bg
 image bg_images_green[] = { image(NULL, 160) };
 int bg_weightage_green[] = { 2 };
+
 //debugging things
-int debugtext; //will be rendered at mousepos
+float debugtext; //will be rendered at mousepos
 
 //others
 int idx[MAXENTITY]; //used for collision detection
@@ -63,6 +70,7 @@ void init( void )
 {
     //init variables
     srand(time(NULL));
+    mapchange(1);
     virusspawntime = 1;
     mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
@@ -96,7 +104,7 @@ void init( void )
 
     //debugging things
     entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
-    mapchange(1);
+    entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
 }
 
 //--------------------------------------------------------------
@@ -269,7 +277,7 @@ void update(double dt)
     g_dDeltaTime = dt;
 
     //increasing spawn timer for virus
-    virusspawntimer += dt;
+    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
 
     // increasing spd timer for entities
     for (int i = 0; i < MAXENTITY; i++)
@@ -422,7 +430,7 @@ void moveCharacter()
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
-        debugtext = entities[0]->getimage().gettext();
+        //debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
         g_skKeyEvent[K_SPACE].keyDown = 0;
         g_skKeyEvent[K_SPACE].keyReleased = 0;
@@ -623,13 +631,13 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
-    debugtext = g_player->gethp();
-    ss << "debug text: " << debugtext;
+    //ss << "debug text: " << debugtext;
+    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
     //tooltip
-    if (true)
+    if (mouse_tooltip_enabled)
     {
         getentityfrompos(&idx[0], position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
         if (idx[0] != -1)
