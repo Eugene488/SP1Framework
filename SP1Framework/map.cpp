@@ -85,6 +85,7 @@ void map::clearmap() {
 	}
 }
 
+<<<<<<< HEAD
 void map::fill(image* images, int size, int* weightage) {
 	int wsum = 0;
 	int indx = 0;
@@ -108,6 +109,8 @@ void map::fill(image* images, int size, int* weightage) {
 	}
 }
 
+=======
+>>>>>>> map-building
 //camera
 void map::centerOnPlayer(position playerpos) {
 	camerapos = position((playerpos.get('x') - ((camerasize.get('x')-1) / 2)), (playerpos.get('y') - ((camerasize.get('y')-1) / 2)));

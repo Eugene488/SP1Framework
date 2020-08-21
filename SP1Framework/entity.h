@@ -36,9 +36,16 @@ public:
 	void sethp(int);
 
 	//other methods
+<<<<<<< HEAD
 	virtual void move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) = 0;
 	bool collisiondetection(WORD[], int, position&, map&);
 	virtual void OnTriggerEnter(position, map&);
 	virtual void die(map& g_map, map& bg_map, map& bgc_map);
+=======
+	virtual void move(map&, WORD solids[], int listsize) = 0;
+	bool collisiondetection(WORD[], int, position&, map&);
+	virtual void OnTriggerEnter(position, map&);
+	void die(map&);
+>>>>>>> map-building
 };
 

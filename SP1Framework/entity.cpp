@@ -64,7 +64,11 @@ bool entity::collisiondetection(WORD solids[], int listsize, position& futurloc,
 void entity::OnTriggerEnter(position, map&) {
 	//do nothing
 }
+<<<<<<< HEAD
 void entity::die(map& g_map, map& bg_map, map& bgc_map) {
+=======
+void entity::die(map& g_map) {
+>>>>>>> map-building
 	g_map.setmapposition(pos, image());
 	delete this;
 }
