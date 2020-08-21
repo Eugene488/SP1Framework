@@ -333,6 +333,7 @@ void update(double dt)
         updatePause();
         break;
     case S_RESTART:
+        maplevel = 1;
         Restart();
         break;
     case S_MAIN: mainMenu();
@@ -1456,6 +1457,10 @@ void renderPause()
 
 void Restart()
 {
+    shutdown();
+    init();
+    g_eGameState = S_GAME;
+    
 }
 
 void mainMenu()
