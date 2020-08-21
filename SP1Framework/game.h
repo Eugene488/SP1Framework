@@ -37,7 +37,6 @@ enum EKEYS
     K_LEFT,
     K_RIGHT,
     K_ESCAPE,
-    K_ENTER,
     K_SPACE,
     K_T,
     K_COUNT
@@ -48,14 +47,7 @@ enum EGAMESTATES
 {
     S_SPLASHSCREEN,
     S_GAME,
-    S_COUNT,
-    S_PAUSE,
-    S_RESTART,
-    S_MAIN,
-    S_OVER,
-    S_TUTORIAL
-
-
+    S_COUNT
 };
 
 // struct for the game character
@@ -83,33 +75,16 @@ void renderFramerate();     // renders debug information, frame rate, elapsed ti
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
 
-
-
-void renderWall();
-void maskrenderout();
-void updatePause(); // check user input
-void renderMask(); // spawns mask
-void renderPause(); // displays pause menu
-void Restart(); // restarts game
-void mainMenu(); // main menu
-void rendertutorialscreen(); // tutorial screen
 void renderWall();
 void maskrenderout();
 
 void renderMask();
-void renderOver(); // render Game Over
-void updateOver(); // update over
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
+
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
-
-
-
-void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
-void spawnvirus();
-int getentityfrompos(position pos, map& g_map);
 
 void spawnvirus();
 void getentityfrompos(int* pointer_to_change, position pos, map& g_map);
