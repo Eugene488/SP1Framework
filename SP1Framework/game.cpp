@@ -9,10 +9,14 @@
 #include "map.h"
 #include <stdlib.h>
 #include <time.h>
+#include <random>
+
+#include "entity.h"
+#include "fire.h"
 #include "player.h"
 #include "virus.h"
-#include <random>
-#include "fire.h"
+#include "virus_spawner.h"
+
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
@@ -20,19 +24,24 @@ SMouseEvent g_mouseEvent;
 int maplevel = 1;
 
 // Game specific variables here
-EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
+EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
 int MAPSIZEY = 200;
 map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
 map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
+map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
 float virusspawntime;
 float virusspawntimer;
+float updatetime = 0.5f;
+float updatetimer = 0;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
-WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
-//current list: 240 =   white  = walls
+WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
+/*current list: 240  =   white  = walls
+                2+80 =  bg:purple fg:green = virus_spawner
+*/
 bool mouse_tooltip_enabled;
 player* g_player;
 
@@ -43,11 +52,12 @@ Console g_Console(80, 25, "Mask of Yendor");
 //nature bgc
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
-
+//nature bg
 image bg_images_green[] = { image(NULL, 160) };
 int bg_weightage_green[] = { 2 };
+
 //debugging things
-int debugtext; //will be rendered at mousepos
+float debugtext; //will be rendered at mousepos
 
 //others
 int idx[MAXENTITY]; //used for collision detection
@@ -63,6 +73,7 @@ void init( void )
 {
     //init variables
     srand(time(NULL));
+    mapchange(1);
     virusspawntime = 1;
     mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
@@ -85,7 +96,7 @@ void init( void )
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
     // sets the initial state for the game
-    g_eGameState = S_SPLASHSCREEN;
+    g_eGameState = S_MAIN;
 
     // sets the width, height and the font name to use in the console
     g_Console.setConsoleFont(0, 16, L"");
@@ -95,8 +106,8 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
-    mapchange(1);
+    entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
+    entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
 }
 
 //--------------------------------------------------------------
@@ -149,12 +160,20 @@ void getInput( void )
 // Output   : void
 //--------------------------------------------------------------
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
-{    
+{
     switch (g_eGameState)
     {
     case S_SPLASHSCREEN: // don't handle anything for the splash screen
         break;
     case S_GAME: gameplayKBHandler(keyboardEvent); // handle gameplay keyboard event 
+        break;
+    case S_PAUSE:pausekeyboardHandler(keyboardEvent);
+        break;
+    case S_MAIN: // nothing
+        break;
+    case S_OVER:gameplayKBHandler(keyboardEvent);
+        break;
+    case S_TUTORIAL:gameplayKBHandler(keyboardEvent);
         break;
     }
 }
@@ -176,12 +195,22 @@ void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
 // Output   : void
 //--------------------------------------------------------------
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
-{    
+{
     switch (g_eGameState)
     {
     case S_SPLASHSCREEN: // don't handle anything for the splash screen
         break;
     case S_GAME: gameplayMouseHandler(mouseEvent); // handle gameplay mouse event
+        break;
+    case S_PAUSE:gameplayMouseHandler(mouseEvent);
+        break;
+    case S_RESTART:Restart();
+        break;
+    case S_MAIN:gameplayMouseHandler(mouseEvent);
+        break;
+    case S_OVER: // nothing
+        break;
+    case S_TUTORIAL: // nothing
         break;
     }
 }
@@ -203,16 +232,17 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     {
     case VK_UP: key = K_UP; break;
     case VK_DOWN: key = K_DOWN; break;
-    case VK_LEFT: key = K_LEFT; break; 
-    case VK_RIGHT: key = K_RIGHT; break; 
+    case VK_LEFT: key = K_LEFT; break;
+    case VK_RIGHT: key = K_RIGHT; break;
     case VK_SPACE: key = K_SPACE; break;
-    case VK_ESCAPE: key = K_ESCAPE; break; 
-    //WASD cases
+    case VK_ESCAPE: key = K_ESCAPE; break;
+    case VK_RETURN: key = K_ENTER; break;
+        //WASD cases
     case 0x57: key = K_W; break;
     case 0x41: key = K_A; break;
     case 0x53: key = K_S; break;
     case 0x44: key = K_D; break;
-    //others
+        //others
     case 0x54: key = K_T; break;
     }
     // a key pressed event would be one with bKeyDown == true
@@ -223,7 +253,7 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     {
         g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
         g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
-    }    
+    }
 }
 
 //--------------------------------------------------------------
@@ -245,7 +275,29 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
     g_mouseEvent.eventFlags = mouseEvent.dwEventFlags;
 }
 
-
+void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
+{
+    // here, we map the key to our enums
+    EKEYS key = K_COUNT;
+    switch (keyboardEvent.wVirtualKeyCode)
+    {
+    case VK_ESCAPE: key = K_ESCAPE; break;
+        //WASD cases
+    case 0x57: key = K_W; break;
+    case 0x41: key = K_A; break;
+    case 0x53: key = K_S; break;
+    case 0x44: key = K_D; break;
+    }
+    // a key pressed event would be one with bKeyDown == true
+    // a key released event would be one with bKeyDown == false
+    // if no key is pressed, no event would be fired.
+    // so we are tracking if a key is either pressed, or released
+    if (key != K_COUNT)
+    {
+        g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
+        g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
+    }
+}
 
 
 //--------------------------------------------------------------
@@ -264,33 +316,40 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
 //--------------------------------------------------------------
 void update(double dt)
 {
-    // get the delta time
-    g_dElapsedTime -= dt;
+
     g_dDeltaTime = dt;
-
-    //increasing spawn timer for virus
-    virusspawntimer += dt;
-
-    // increasing spd timer for entities
-    for (int i = 0; i < MAXENTITY; i++)
-    {
-        if (entities[i] != NULL)
-        {
-            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
-        }
-    }
-
     switch (g_eGameState)
     {
-        case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
-            break;
-        case S_GAME:
-            if (g_player->getItimer() <= 0.5f)
+    case S_SPLASHSCREEN: splashScreenWait(); // game logic for the splash screen
+        break;
+    case S_GAME:
+    //increasing spawn timer for virus
+    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
+        // get the delta time
+        g_dElapsedTime -= dt;
+
+        updatetimer += dt;
+
+        // increasing spd timer for entities
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] != NULL)
             {
-                g_player->setItimer(g_player->getItimer() + dt);
+                entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
             }
-            updateGame(); // gameplay logic when we are in the game
-            break;
+        }
+        updateGame(); // gameplay logic when we are in the game
+        break;
+    case S_PAUSE:
+        updatePause();
+        break;
+    case S_RESTART:
+        Restart();
+        break;
+    case S_MAIN: mainMenu();
+        break;
+    case S_OVER: renderOver();
+        break;
     }
 
     if (g_dElapsedTime < 0)
@@ -307,6 +366,18 @@ void updateGame()       // gameplay logic
 {
     //debugging things
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
+    //updating things based on delta time for entities
+    if (updatetimer >= updatetime)
+    {
+        updatetimer = 0;
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] != NULL)
+            {
+                entities[i]->update(g_map, bg_map, bgc_map, fg_map);
+            }
+        }
+    }
     //movement for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -422,7 +493,7 @@ void moveCharacter()
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
-        debugtext = entities[0]->getimage().gettext();
+        //debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
         g_skKeyEvent[K_SPACE].keyDown = 0;
         g_skKeyEvent[K_SPACE].keyReleased = 0;
@@ -435,11 +506,15 @@ void moveCharacter()
         g_skKeyEvent[K_T].keyReleased = 0;
     }
 }
+
 void processUserInput()
 {
     // quits the game if player hits the escape key
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
-        g_bQuitGame = true;
+    {
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        g_eGameState = S_PAUSE;
+    }
 }
 
 //--------------------------------------------------------------
@@ -455,10 +530,17 @@ void render()
     clearScreen();      // clears the current screen and draw from scratch 
     switch (g_eGameState)
     {
-    case S_SPLASHSCREEN: renderSplashScreen();
+    case S_SPLASHSCREEN:renderSplashScreen();
+        break;
+    case S_MAIN:mainMenu();
         break;
     case S_GAME: renderGame();
         break;
+    case S_PAUSE:renderPause();
+        break;
+    case S_OVER:renderOver();
+        break;
+    case S_TUTORIAL:rendertutorialscreen();
     }
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
@@ -535,29 +617,36 @@ void renderMap()
                 c.Y = y0;
                 bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
                 //rendering g_map
-                if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
+                if (fg_map.getmapposition(position(x, y)).gettext() != NULL || fg_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
-                    if (g_image_colour > 15)
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
-                    }
-                    else
-                    {
-                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
-                    }
+                    g_Console.writeToBuffer(c, fg_map.getmapposition(position(x, y)).gettext(), fg_map.getmapposition(position(x, y)).getcolour());
                 }
-                //rendering bgc_map
                 else
                 {
-                    bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
-                    if (bgc_image_colour > 15)
+                    if (g_map.getmapposition(position(x, y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
+                        if (g_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
+                        }
                     }
+                    //rendering bgc_map
                     else
                     {
-                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
+                        if (bgc_image_colour > 15)
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                        }
+                        else
+                        {
+                            g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                        }
                     }
                 }
             }
@@ -623,13 +712,19 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+
     debugtext = g_player->gethp();
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
+
+    //debugtext = g_player->gethp();
+    ss << "debug text: " << debugtext;
+    //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
+
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
     //tooltip
-    if (true)
+    if (mouse_tooltip_enabled)
     {
         getentityfrompos(&idx[0], position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
         if (idx[0] != -1)
@@ -750,10 +845,13 @@ void renderMask()
 
         WORD charColor = 0x0C;
         g_map.setmapposition(position(79, 72), image('M', charColor));
+
     }
     else if (maplevel == 5)
     {
         g_bQuitGame = true;
+
+
     }
 }
 
@@ -1332,10 +1430,140 @@ void mapchange(int x)
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
 213  -> virus (fg: purple  bg: magenta  text: 15)
- 10  -> player(fg: light_green bg: NULL text: 1)
+  0  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
 
 bg_map
 reds -> fire  (fg: reds    bg: reds     text: -21)
 */
+
+void renderOver()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "GAME OVER!";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_MAIN;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+    ss.str("");
+    ss << "Press <Enter> to restart";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+}
+
+void renderPause()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Resume";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_GAME;
+        g_mouseEvent.buttonState = 0;
+    }
+    ss.str("");
+    ss << "Restart";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() + 1;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_RESTART;
+        g_mouseEvent.buttonState = 0;
+    }
+    ss.str("");
+    ss << "Exit to main menu";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() + 11;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_MAIN;
+        g_mouseEvent.buttonState = 0;
+    }
+}
+
+void Restart()
+{
+}
+
+void mainMenu()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Start";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_eGameState = S_TUTORIAL;
+        g_mouseEvent.buttonState = 0;
+    }
+    ss.str("");
+    ss << "Exit";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() - 1;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_bQuitGame = true;
+    }
+}
+
+void rendertutorialscreen() // prints out instructions
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Instructions:";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "W-A-S-D to move up/left/down/right";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Goal is to collect the mask and avoid the virus!";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Press <Enter> to continue";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+}
+
+void updatePause()
+{
+    if (g_skKeyEvent[K_ESCAPE].keyReleased)
+    {
+        g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+}
