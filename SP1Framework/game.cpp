@@ -1493,6 +1493,7 @@ void renderPause()
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
+        Restart();
         g_eGameState = S_MAIN;
         g_mouseEvent.buttonState = 0;
     }
