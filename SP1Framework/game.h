@@ -2,8 +2,6 @@
 #define _GAME_H
 
 #include "Framework\timer.h"
-#include "position.h"
-#include "map.h"
 
 extern CStopWatch g_swTimer;
 extern bool g_bQuitGame;
@@ -38,7 +36,6 @@ enum EKEYS
     K_RIGHT,
     K_ESCAPE,
     K_SPACE,
-    K_T,
     K_COUNT
 };
 
@@ -71,13 +68,13 @@ void clearScreen();         // clears the current screen and draw from scratch
 void renderSplashScreen();  // renders the splash screen
 void renderGame();          // renders the game stuff
 void renderMap();           // renders the map to the buffer first
+void renderCharacter();     // renders the character into the buffer
 void renderFramerate();     // renders debug information, frame rate, elapsed time, etc
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
 
 void renderWall();
-void maskrenderout();
-void mapchange(int x);
+
 
 void renderMask();
 // keyboard and mouse input event managers
@@ -87,7 +84,5 @@ void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this fun
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
 
-void spawnvirus();
-void getentityfrompos(int* pointer_to_change, position pos, map& g_map);
-void clearentities();
+
 #endif // _GAME_H
