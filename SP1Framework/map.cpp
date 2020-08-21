@@ -80,7 +80,30 @@ void map::clearmap() {
 	{
 		for (int y = 0; y < size_y; y++)
 		{
-			mapvalues[x][y] = image();
+			mapvalues[x][y] = image(NULL, 0);
+		}
+	}
+}
+
+void map::fill(image* images, int size, int* weightage) {
+	int wsum = 0;
+	int indx = 0;
+	int randnum = 0;
+	for (int i = 0; i < size; i++)
+	{
+		wsum += weightage[i];
+	}
+	for (int x = 0; x < size_x; x++)
+	{
+		for (int y = 0; y < size_y; y++)
+		{
+			indx = 0;
+			randnum = rand() % wsum;
+			while (randnum >= weightage[indx]) {
+				randnum -= weightage[indx];
+				indx++;
+			}
+			mapvalues[x][y] = image(images[indx]);
 		}
 	}
 }

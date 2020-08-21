@@ -12,29 +12,46 @@
 #include "player.h"
 #include "virus.h"
 #include <random>
-
+#include "fire.h"
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 int maplevel = 1;
+
 // Game specific variables here
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 map g_map = map(100, 50, position(0,0), position(80, 25));
+int MAPSIZEX = 200;
+int MAPSIZEY = 200;
+map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
+map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
+map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
 float virusspawntime;
 float virusspawntimer;
-const int MAXENTITY = 20;
+const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240}; //list of solid objects that will stop movement, add the colour here
 //current list: 240 =   white  = walls
 bool mouse_tooltip_enabled;
+player* g_player;
 
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
+//background random generation
+//nature bgc
+image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
+int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
+
+image bg_images_green[] = { image(NULL, 160) };
+int bg_weightage_green[] = { 2 };
 //debugging things
-string debugtext; //will be rendered at mousepos
+int debugtext; //will be rendered at mousepos
+
+//others
+int idx[MAXENTITY]; //used for collision detection
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -45,9 +62,6 @@ string debugtext; //will be rendered at mousepos
 //--------------------------------------------------------------
 void init( void )
 {
-    //debugging things
-    g_map.setmapposition(position(5, 5), image('T', 4));
-
     //init variables
     srand(time(NULL));
     virusspawntime = 1;
@@ -56,16 +70,23 @@ void init( void )
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(40, 12), 3, 0.05f, image(1, 10));
+    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 0));
     
+    //init maps
+    renderWall(); //creating the border walls
+    //background char map
+    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    //background colour only map
+    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
     // Setting attributes of player
+    g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
 
     // Set precision for floating point output
     g_dElapsedTime = 3600.0;    // Susceptible to change 
 
     // sets the initial state for the game
-    g_eGameState = S_MAIN;
+    g_eGameState = S_SPLASHSCREEN;
 
     // sets the width, height and the font name to use in the console
     g_Console.setConsoleFont(0, 16, L"");
@@ -73,6 +94,10 @@ void init( void )
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
+
+    //debugging things
+    entities[1] = new fire(position(50, 50), 1, 3, bgc_map, bg_map);
+    mapchange(1);
 }
 
 //--------------------------------------------------------------
@@ -131,14 +156,6 @@ void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case S_SPLASHSCREEN: // don't handle anything for the splash screen
         break;
     case S_GAME: gameplayKBHandler(keyboardEvent); // handle gameplay keyboard event 
-        break;
-    case S_PAUSE:pausekeyboardHandler(keyboardEvent);
-        break;
-    case S_MAIN: // nothing
-        break;
-    case S_OVER:gameplayKBHandler(keyboardEvent);
-        break;
-    case S_TUTORIAL:gameplayKBHandler(keyboardEvent);
         break;
     }
 }
@@ -201,7 +218,7 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case VK_RIGHT: key = K_RIGHT; break; 
     case VK_SPACE: key = K_SPACE; break;
     case VK_ESCAPE: key = K_ESCAPE; break;
-    case VK_RETURN: key = K_ENTER; break;
+    case VK_RETURN: key = K_ENTER; break;	
     //WASD cases
     case 0x57: key = K_W; break;
     case 0x41: key = K_A; break;
@@ -241,35 +258,6 @@ void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
 }
 
 
-void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
-{
-    // here, we map the key to our enums
-    EKEYS key = K_COUNT;
-    switch (keyboardEvent.wVirtualKeyCode)
-    {
-    case VK_ESCAPE: key = K_ESCAPE; break;
-        //WASD cases
-    case 0x57: key = K_W; break;
-    case 0x41: key = K_A; break;
-    case 0x53: key = K_S; break;
-    case 0x44: key = K_D; break;
-    }
-    // a key pressed event would be one with bKeyDown == true
-    // a key released event would be one with bKeyDown == false
-    // if no key is pressed, no event would be fired.
-    // so we are tracking if a key is either pressed, or released
-    if (key != K_COUNT)
-    {
-        g_skKeyEvent[key].keyDown = keyboardEvent.bKeyDown;
-        g_skKeyEvent[key].keyReleased = !keyboardEvent.bKeyDown;
-    }
-}
-
-
-
-
-
-
 
 
 //--------------------------------------------------------------
@@ -295,7 +283,6 @@ void update(double dt)
         case S_SPLASHSCREEN : splashScreenWait(); // game logic for the splash screen
             break;
         case S_GAME:
-
             // get the delta time
             g_dElapsedTime -= dt;
             
@@ -304,11 +291,9 @@ void update(double dt)
 
             // increasing spd timer for entities
             for (int i = 0; i < MAXENTITY; i++)
+            if (g_player->getItimer() <= 0.5f)
             {
-                if (entities[i] != NULL)
-                {
-                    entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
-                }
+                g_player->setItimer(g_player->getItimer() + dt);
             }
             updateGame(); // gameplay logic when we are in the game
             break;
@@ -354,7 +339,7 @@ void updateGame()       // gameplay logic
                 else
                 {
                     entities[i]->setspdtimer(0);
-                    entities[i]->move(g_map, solids, size(solids));
+                    entities[i]->move(g_map, bg_map, bgc_map, solids, size(solids), entities, MAXENTITY);
                 }
             }
         }
@@ -363,7 +348,7 @@ void updateGame()       // gameplay logic
         {
             if (entities[i] != NULL && entities[i]->gethp() <= 0)
             {
-                entities[i]->die(g_map);
+                entities[i]->die(g_map, bg_map, bgc_map);
                 entities[i] = NULL;
             }
         }
@@ -407,35 +392,42 @@ void moveCharacter()
             break;
         }
     }
-    //trigger detection
-    if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(0x0B)) //mask
+    //trigger detection for g_map
+    WORD g_mapcolour = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
+    if (g_mapcolour == static_cast<WORD>(0x0B)) //mask
     {
         maplevel++;
         maskrenderout();
+        mapchange(maplevel);
+        futurloc = entities[0]->getpos();
     }
-    else if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(213)) //virus
+    else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
-        while (true) {
-            int idx = getentityfrompos(futurloc, g_map);
-            if (idx != -1)
+        getentityfrompos(&idx[0], futurloc, g_map);
+        if (idx[0] != -1)
+        {
+            for (int i = 0; i < MAXENTITY; i++)
             {
-                entities[idx]->sethp(0);
-                entities[idx]->setpos(position(0, 0), g_map);
-                entities[0]->sethp(entities[0]->gethp() - 1);
-                if (entities[0]->gethp() < 1)
+                if (idx == NULL)
                 {
-                    g_eGameState = S_OVER; // once hitpoints done put this in 
-                    //TODO other negative effects
-                    entities[0]->sethp(3); // resets player's hp
+                    break;
                 }
-            }
-            else
-            {
-                break;
+                else
+                {
+                    entities[idx[i]]->sethp(0);
+                    g_player->takedmg(1);
+                    //TODO other negative effects
+                }
             }
         }
     }
-    //rendering
+    //trigger detection for bgc_map
+    char bgc_map_char = bgc_map.getmapposition(futurloc).gettext();
+    if (bgc_map_char == -21) //fire
+    {
+        g_player->takedmg(1);
+    }
+    //"rendering"
     position prevloc = entities[0]->getpos();
     g_map.setmapposition(prevloc, previmg);
     previmg = image(NULL, 0);
@@ -458,7 +450,6 @@ void moveCharacter()
         g_skKeyEvent[K_T].keyDown = 0;
         g_skKeyEvent[K_T].keyReleased = 0;
     }
-   
 }
 void processUserInput()
 {
@@ -550,20 +541,50 @@ void renderMap()
     //    g_Console.writeToBuffer(c, " °±²Û", colors[i]);
     //}
     
-    //rendering the map
+    //rendering the maps
     COORD c;
     g_map.centerOnPlayer(entities[0]->getpos());
-    for (int x = g_map.getcampos().get('x'), x0 = 0; x < g_map.getcampos().get('x') + g_map.getcamsize().get('x'); x++, x0++)
+    int camposx = g_map.getcampos().get('x');
+    int camsizex = g_map.getcamsize().get('x');
+    int camposy = g_map.getcampos().get('y');
+    int camsizey = g_map.getcamsize().get('y');
+    WORD g_image_colour = 0;
+    WORD bg_image_colour = 0;
+    WORD bgc_image_colour = 0;
+    for (int x = camposx, x0 = 0; x < camposx + camsizex; x++, x0++)
     {
-        for (int y = g_map.getcampos().get('y'), y0 = 0; y < g_map.getcampos().get('y') + g_map.getcamsize().get('y'); y++, y0++)
+        for (int y = camposy, y0 = 0; y < camposy + camsizey; y++, y0++)
         {
             if (x >= 0 && y >= 0 && x < g_map.getmapsize('x') && y <= g_map.getmapsize('y'))
             {
                 c.X = x0;
                 c.Y = y0;
+                bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
+                //rendering g_map
                 if (g_map.getmapposition(position(x,y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
-                    g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_map.getmapposition(position(x, y)).getcolour());
+                    g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
+                    if (g_image_colour > 15)
+                    {
+                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
+                    }
+                    else
+                    {
+                        g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour + bg_image_colour);
+                    }
+                }
+                //rendering bgc_map
+                else
+                {
+                    bgc_image_colour = bgc_map.getmapposition(position(x, y)).getcolour();
+                    if (bgc_image_colour > 15)
+                    {
+                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour);
+                    }
+                    else
+                    {
+                        g_Console.writeToBuffer(c, bgc_map.getmapposition(position(x, y)).gettext(), bgc_image_colour + bg_image_colour);
+                    }
                 }
             }
         }
@@ -628,17 +649,18 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+    debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
-    //g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
+    g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
     ss.str("");
 
     //tooltip
-    if (mouse_tooltip_enabled)
+    if (true)
     {
-        int idx = getentityfrompos(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
-        if (idx != -1)
+        getentityfrompos(&idx[0], position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+        if (idx[0] != -1)
         {
-            ss << entities[idx]->getname();
+            ss << entities[idx[0]]->getname();
             g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
         }
     }
@@ -678,48 +700,133 @@ void renderInputEvents()
     
 }
 
+void spawnvirus() {
+    if (virus::gettotal() < 20)
+    {
+        for (int i = 0; i < size(entities); i++)
+        {
+            if (entities[i] == NULL)
+            {
+                entities[i] = new virus(0.5f, g_map);
+                break;
+            }
+        }
+    }
+}
+
+//returns the entity that is in pos of g_map
+void getentityfrompos(int* ptr, position pos, map& g_map) {
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        g_eGameState = S_MAIN;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        ptr[i] = NULL;
+    }
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
+        {
+            for (int i2 = 0; i2 < MAXENTITY; i2++)
+            {
+                if (ptr[i2] == NULL)
+                {
+                    ptr[i2] = i;
+                }
+            }
+        }
+    }
+    if (ptr[0] == NULL)
+    {
+        ptr[0] = -1; //ptr[0] == -1 when no entity is in that position
+    }
+}
+
+//deletes all entities except for the player
+void clearentities() {
+    for (int i = 1; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->die(g_map, bg_map, bgc_map);
+            entities[i] = NULL;
+        }
+    }
+}
+
 void renderMask()
 {
     if (maplevel == 1)
     {
         WORD charColor = 0x0B;
-        g_map.setmapposition(position(10, 10), image('M', charColor));
+        g_map.setmapposition(position(190, 24), image('M', charColor));
     }
     else if (maplevel == 2)
     {
-        WORD charColor = 0x0B;
+		WORD charColor = 0x0B;
         g_map.setmapposition(position(20, 10), image('M', charColor));
+    }
+
+    else if (maplevel == 3)
+    {
+
+        WORD charColor = 0x0B;
+        g_map.setmapposition(position(30, 10), image('M', charColor));
+    }
+    else if (maplevel == 4)
+    {
+        WORD charColor = 0x0B;
+        g_map.setmapposition(position(79, 72), image('M', charColor));
     }
 }
 
-void renderOver()
+void mainMenu()
 {
     std::ostringstream ss;
     std::string key;
     ss.str("");
-    ss << "GAME OVER!";
+    ss << "Start";
     COORD c = g_Console.getConsoleSize();
     c.Y /= 3;
     c.X = c.X / 2 - ss.tellp();
     g_Console.writeToBuffer(c, ss.str(), 0x03);
-    if (g_skKeyEvent[K_ENTER].keyReleased)
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
-        g_eGameState = S_MAIN;
-        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        g_eGameState = S_TUTORIAL;
+        g_mouseEvent.buttonState = 0;
     }
     ss.str("");
-    ss << "Press <Enter> to restart";
+    ss << "Exit";
     c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() - 1;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
-}
-
-void updateOver()
-{
-
+    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
+    {
+        g_bQuitGame = true;
+    }
 }
 
 //render border walls
+void renderWall()
+{
+    for (int i = 0; i < g_map.getmapsize('x'); i++)
+    {
+        WORD charColor = 240; //bg white
+        g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
+        g_map.setmapposition(position(i, 0), image(' ', charColor));//top wall border
+
+        
+
+        
+
+        for (int i = 0; i < g_map.getmapsize('y'); i++)
+        {
+            g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
+            g_map.setmapposition(position(g_map.getmapsize('x') - 1, i), image(' ', charColor)); //right wall border
+        }
+
+        
+    }
+}
 
 void maskrenderout()
 {
@@ -727,27 +834,592 @@ void maskrenderout()
     g_map.setmapposition(position(10, 10), image('M', charColor));
 }
 
-void spawnvirus() {
-    for (int i = 0; i < size(entities); i++)
+void mapchange(int x)
+{
+    clearentities();
+    g_map.clearmap();
+    bg_map.clearmap();
+    bgc_map.clearmap();
+    //background char map
+    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    //background colour only map
+    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
+    WORD charColor = 240;
+
+    if (maplevel == 1)
     {
-        if (entities[i] == NULL)
+        for (int i = 0; i < 40; i++)
         {
-            entities[i] = new virus(0.5f, g_map);
-            break;
+            g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
+
         }
+        for (int i = 0; i < 20; i++)
+        {
+            g_map.setmapposition(position(180 + i, 25), image(' ', charColor));
+            g_map.setmapposition(position(180 + i, 29), image(' ', charColor));
+        }
+        for (int i = 0; i < 82; i++)
+        {
+            g_map.setmapposition(position(98 + i, 5), image(' ', charColor));
+            g_map.setmapposition(position(98 + i, 6), image(' ', charColor));
+        }
+        for (int i = 0; i < 7; i++)
+        {
+
+            g_map.setmapposition(position(148, 6 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 34; i++)
+        {
+
+            g_map.setmapposition(position(146 + i, 13), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 28; i++)
+        {
+
+            g_map.setmapposition(position(91 + i, 9), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 12; i++)
+        {
+
+            g_map.setmapposition(position(91, 9 + i), image(' ', charColor));
+            g_map.setmapposition(position(137, 31 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 2; i++)
+        {
+
+            g_map.setmapposition(position(118, 10 + i), image(' ', charColor));
+
+
+        }
+        for (int i = 0; i < 8; i++)
+        {
+
+            g_map.setmapposition(position(118 + i, 11), image(' ', charColor));
+            g_map.setmapposition(position(138 , 31+i), image(' ', charColor));
+            g_map.setmapposition(position(139, 31 + i), image(' ', charColor));
+            g_map.setmapposition(position(140, 31 + i), image(' ', charColor));
+            g_map.setmapposition(position(141, 31 + i), image(' ', charColor));
+            g_map.setmapposition(position(142, 31 + i), image(' ', charColor));
+            g_map.setmapposition(position(143, 31 + i), image(' ', charColor));
+            g_map.setmapposition(position(144, 31 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 6; i++)
+        {
+
+            g_map.setmapposition(position(125, 11 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 36; i++)
+        {
+
+            g_map.setmapposition(position(125 + i, 16), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 15; i++)
+        {
+
+            g_map.setmapposition(position(160, 16 + i), image(' ', charColor));
+
+        }
+
+        for (int i = 0; i < 11; i++)
+        {
+
+            g_map.setmapposition(position(150, 20 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 10; i++)
+        {
+
+            g_map.setmapposition(position(150 + i, 30), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 10; i++)
+        {
+
+            g_map.setmapposition(position(175 + i, 44), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 30; i++)
+        {
+
+            g_map.setmapposition(position(175, 14 + i), image(' ', charColor));
+            g_map.setmapposition(position(145 + i, 34), image(' ', charColor));
+            g_map.setmapposition(position(137 + i, 34), image(' ', charColor));
+            g_map.setmapposition(position(115 + i, 27), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 7; i++)
+        {
+
+            g_map.setmapposition(position(145, 27 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 5; i++)
+        {
+
+            g_map.setmapposition(position(115, 27 + i), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 22; i++)
+        {
+
+            g_map.setmapposition(position(115 + i, 31), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 38; i++)
+        {
+
+            g_map.setmapposition(position(137 + i, 42), image(' ', charColor));
+
+        }
+        for (int i = 0; i < 60; i++)
+        {
+            g_map.setmapposition(position(91 + i, 20), image(' ', charColor));
+        }
+        for (int i = 0; i < 46; i++)
+        {
+            g_map.setmapposition(position(91, i), image(' ', charColor));
+        }
+        for (int i = 0; i < 108; i++)
+        {
+            g_map.setmapposition(position(91 + i, 46), image(' ', charColor));
+        }
+
+
+        //FILLING
+        for (int i = 0; i < 37; i++)
+        {
+            g_map.setmapposition(position(138 + i, 35), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 36), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 37), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 38), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 39), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(138 + i, 41), image(' ', charColor));
+        }
+        for (int i = 0; i < 26; i++)
+        {
+            g_map.setmapposition(position(92 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 11), image(' ', charColor));
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            g_map.setmapposition(position(151, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(152, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(153, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(154, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(155, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(156, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(157, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(158, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(159, 20 + i), image(' ', charColor));
+           
+        }
+        for (int i = 0; i < 29; i++)
+        {
+            g_map.setmapposition(position(116+i, 28 ), image(' ', charColor));
+            g_map.setmapposition(position(116+i, 29 ), image(' ', charColor));
+            g_map.setmapposition(position(116+i, 30 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 33; i++)
+        {
+            g_map.setmapposition(position(92 + i, 12 ), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 13 ), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 14 ), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 15 ), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 16 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 68; i++)
+        {
+            g_map.setmapposition(position(92 + i, 17), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 18), image(' ', charColor));
+            g_map.setmapposition(position(92 + i, 19), image(' ', charColor));
+        }
+        for (int i = 0; i < 31; i++)
+        {
+            g_map.setmapposition(position(149+i, 7 ), image(' ', charColor));
+            g_map.setmapposition(position(149 + i, 8 ), image(' ', charColor));
+            g_map.setmapposition(position(149 + i, 9 ), image(' ', charColor));
+            g_map.setmapposition(position(149 + i, 10 ), image(' ', charColor));
+            g_map.setmapposition(position(149 + i, 11 ), image(' ', charColor));
+            g_map.setmapposition(position(149 + i, 12 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 30; i++)
+        {
+            g_map.setmapposition(position(176 , 14 + i), image(' ', charColor));
+            g_map.setmapposition(position(177 , 14 + i), image(' ', charColor));
+            g_map.setmapposition(position(178 , 14 + i), image(' ', charColor));
+            g_map.setmapposition(position(179 , 14 +i), image(' ', charColor));
+        }
+        for (int i = 0; i < 18; i++)
+        {
+            g_map.setmapposition(position(181 + i, 26 ), image(' ', charColor));
+            g_map.setmapposition(position(181 + i, 27 ), image(' ', charColor));
+            g_map.setmapposition(position(181 + i, 28 ), image(' ', charColor));
+        }
+        //END OF FILLING
+
+        // END OF MAP 1 DESIGN
+    }
+    
+    if (maplevel == 2)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+
+            g_map.setmapposition(position(i, 1), image(' ', 240));
+        }
+        entities[0]->setpos(position(9, 30), g_map);
+        
+
+    }
+    if (maplevel == 3)
+    {
+        g_map.setmapposition(position(20, 1), image(' ', 240));
+        entities[0]->setpos(position(4, 45), g_map);
+
+    }
+    if (maplevel == 4)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            g_map.setmapposition(position(99, 194+i), image(' ', charColor));
+            g_map.setmapposition(position(65, 131 + i), image(' ', charColor));
+            g_map.setmapposition(position(72 , 126+i), image(' ', charColor));
+            g_map.setmapposition(position(80, 121 + i), image(' ', charColor));
+            g_map.setmapposition(position(86, 116 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            g_map.setmapposition(position(95+i, 194), image(' ', charColor));
+            g_map.setmapposition(position(91 + i, 161), image(' ', charColor));
+            g_map.setmapposition(position(95 + i, 175), image(' ', charColor));
+        }
+        for (int i = 0; i < 12; i++)
+        {
+            g_map.setmapposition(position(95, 182+i), image(' ', charColor));
+            g_map.setmapposition(position(151, 88 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            g_map.setmapposition(position(85+i, 182), image(' ', charColor));
+            g_map.setmapposition(position(91 + i, 130), image(' ', charColor));
+            g_map.setmapposition(position(101, 190 + i), image(' ', charColor));
+            
+        }
+        for (int i = 0; i < 19; i++)
+        {
+            g_map.setmapposition(position(85 , 163+i), image(' ', charColor));
+            g_map.setmapposition(position(174, 100+i), image(' ', charColor));
+        }
+        for (int i = 0; i < 14; i++)
+        {
+            g_map.setmapposition(position(71+i, 163 ), image(' ', charColor));
+            g_map.setmapposition(position(95, 161+i), image(' ', charColor));
+        }
+        for (int i = 0; i < 9; i++)
+        {
+            g_map.setmapposition(position(71 , 154+i), image(' ', charColor));
+            g_map.setmapposition(position(107 , 119+i), image(' ', charColor));
+            
+        }
+        for (int i = 0; i < 13; i++)
+        {
+            g_map.setmapposition(position(58+i, 154 ), image(' ', charColor));
+            g_map.setmapposition(position(17, 96 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 18; i++)
+        {
+            g_map.setmapposition(position(58 , 136+i), image(' ', charColor));
+            g_map.setmapposition(position(113+i, 80 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 7; i++)
+        {
+            g_map.setmapposition(position(58+i, 136 ), image(' ', charColor));
+            g_map.setmapposition(position(65 + i, 131), image(' ', charColor));
+            g_map.setmapposition(position(6 , 109+i), image(' ', charColor));
+            
+            
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            g_map.setmapposition(position(72 + i, 126), image(' ', charColor));
+            g_map.setmapposition(position(80+i, 121 ), image(' ', charColor));
+            g_map.setmapposition(position(17+i, 96 ), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 128), image(' ', charColor));
+        }
+        for (int i = 0; i < 80; i++)
+        {
+            g_map.setmapposition(position(6 + i, 116), image(' ', charColor));
+        }
+        for (int i = 0; i < 11; i++)
+        {
+            g_map.setmapposition(position(6+i, 109 ), image(' ', charColor));
+            g_map.setmapposition(position(53, 69 + i), image(' ', charColor));
+            g_map.setmapposition(position(113 , 69+i), image(' ', charColor));
+        }
+        for (int i = 0; i < 16; i++)
+        {
+            g_map.setmapposition(position(23, 80 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 30; i++)
+        {
+            g_map.setmapposition(position(23+i, 80 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 60; i++)
+        {
+            g_map.setmapposition(position(53+i, 69 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            g_map.setmapposition(position(131 , 80+i), image(' ', charColor));
+            g_map.setmapposition(position(72 + i, 126), image(' ', charColor));
+        }
+        for (int i = 0; i < 20; i++)
+        {
+            g_map.setmapposition(position(131+i, 88 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 23; i++)
+        {
+            g_map.setmapposition(position(151+i, 100 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 67; i++)
+        {
+
+            g_map.setmapposition(position(107 + i, 119), image(' ', charColor));
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            g_map.setmapposition(position(101, 128+i), image(' ', charColor));
+            g_map.setmapposition(position(99+i, 190 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 31; i++)
+        {
+            g_map.setmapposition(position(91, 130 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 15; i++)
+        {
+            g_map.setmapposition(position(99, 175 + i), image(' ', charColor));
+        }
+
+
+        //MAZE
+
+        for (int i = 0; i < 5; i++)
+        {
+            g_map.setmapposition(position(107, 114 + i), image(' ', charColor));
+            g_map.setmapposition(position(120 , 114+i), image(' ', charColor));
+            g_map.setmapposition(position(86, 111 + i), image(' ', charColor));
+            g_map.setmapposition(position(74, 111 + i), image(' ', charColor));
+            g_map.setmapposition(position(37, 111 + i), image(' ', charColor));
+            g_map.setmapposition(position(26, 111 + i), image(' ', charColor));
+            g_map.setmapposition(position(130, 108 + i), image(' ', charColor));
+            g_map.setmapposition(position(135+i, 104), image(' ', charColor));
+            g_map.setmapposition(position(60 , 79+i), image(' ', charColor));
+            
+        }
+        for (int i = 0; i < 13; i++)
+        {
+            g_map.setmapposition(position(107+i, 114 ), image(' ', charColor));
+            g_map.setmapposition(position(74+i, 111 ), image(' ', charColor));
+            g_map.setmapposition(position(56+i, 71 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 11; i++)
+        {
+            g_map.setmapposition(position(26 + i, 111), image(' ', charColor));
+            g_map.setmapposition(position(163 , 103+i), image(' ', charColor));
+            g_map.setmapposition(position(108, 71 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            g_map.setmapposition(position(21 , 98+i), image(' ', charColor));
+            
+            g_map.setmapposition(position(128 , 82+i), image(' ', charColor));
+            g_map.setmapposition(position(75, 74 + i), image(' ', charColor));
+            g_map.setmapposition(position(60+i, 84 ), image(' ', charColor));
+            g_map.setmapposition(position(60 + i, 79), image(' ', charColor));
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            g_map.setmapposition(position(72, 85 + i), image(' ', charColor));
+            g_map.setmapposition(position(95, 85 + i), image(' ', charColor));
+            g_map.setmapposition(position(73+i, 90 ), image(' ', charColor));
+            g_map.setmapposition(position(89 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(70, 79 + i), image(' ', charColor));
+            g_map.setmapposition(position(96+i, 85), image(' ', charColor));
+        }
+        for (int i = 0; i < 7; i++)
+        {
+            g_map.setmapposition(position(21+i, 98 ), image(' ', charColor));
+            g_map.setmapposition(position(69 + i, 74), image(' ', charColor));
+            g_map.setmapposition(position(84 + i, 74), image(' ', charColor));
+            g_map.setmapposition(position(36, 94+i), image(' ', charColor));
+            g_map.setmapposition(position(43, 94 + i), image(' ', charColor));
+            g_map.setmapposition(position(37+i, 94 ), image(' ', charColor));
+            g_map.setmapposition(position(33, 85+i), image(' ', charColor));
+            g_map.setmapposition(position(65, 85 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 15; i++)
+        {
+            g_map.setmapposition(position(27 , 83+i), image(' ', charColor));
+            g_map.setmapposition(position(90, 93 + i), image(' ', charColor));
+            g_map.setmapposition(position(135, 95 + i), image(' ', charColor));
+            g_map.setmapposition(position(140, 95 + i), image(' ', charColor));
+            g_map.setmapposition(position(96, 77 + i), image(' ', charColor));
+            g_map.setmapposition(position(101, 77 + i), image(' ', charColor));
+        }
+        
+        for (int i = 0; i < 29; i++)
+        {
+            g_map.setmapposition(position(27+i, 83 ), image(' ', charColor));
+        }
+        for (int i = 0; i < 12; i++)
+        {
+            g_map.setmapposition(position(56, 71+i), image(' ', charColor));
+            g_map.setmapposition(position(146, 91 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            g_map.setmapposition(position(69, 71 + i), image(' ', charColor));
+            g_map.setmapposition(position(75, 71 + i), image(' ', charColor));
+            g_map.setmapposition(position(84 , 71 + i), image(' ', charColor));
+            g_map.setmapposition(position(90, 71 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 9; i++)
+        {
+            g_map.setmapposition(position(75+i, 71), image(' ', charColor));
+            g_map.setmapposition(position(96 , 95+i), image(' ', charColor));
+            g_map.setmapposition(position(127, 95 + i), image(' ', charColor));
+        }
+        
+        for (int i = 0; i < 18; i++)
+        {
+            g_map.setmapposition(position(90+i, 71 ), image(' ', charColor));
+            g_map.setmapposition(position(128 + i, 91), image(' ', charColor));
+        }
+        for (int i = 0; i < 20; i++)
+        {
+            g_map.setmapposition(position(109+i , 82), image(' ', charColor));
+        }
+        for (int i = 0; i < 17; i++)
+        {
+            g_map.setmapposition(position(146 + i, 103), image(' ', charColor));
+            
+        }
+        for (int i = 0; i < 24; i++)
+        {
+            g_map.setmapposition(position(72 + i, 84), image(' ', charColor));
+        }
+        for (int i = 0; i < 33; i++)
+        {
+            g_map.setmapposition(position(130 + i, 113), image(' ', charColor));
+        }
+        for (int i = 0; i < 40; i++)
+        {
+            g_map.setmapposition(position(90 + i, 108), image(' ', charColor));
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            g_map.setmapposition(position(90 + i, 108), image(' ', charColor));
+            g_map.setmapposition(position(86 , 89+i), image(' ', charColor));
+            g_map.setmapposition(position(68, 89 + i), image(' ', charColor));
+            g_map.setmapposition(position(32, 102 + i), image(' ', charColor));
+            g_map.setmapposition(position(53, 102 + i), image(' ', charColor));
+        }
+        
+        for (int i = 0; i < 22; i++)
+        {
+            g_map.setmapposition(position(68 + i, 93), image(' ', charColor));
+            g_map.setmapposition(position(62 + i, 104), image(' ', charColor));
+            g_map.setmapposition(position(62 + i, 105), image(' ', charColor));
+            g_map.setmapposition(position(32 + i, 102), image(' ', charColor));
+            g_map.setmapposition(position(32 + i, 105), image(' ', charColor));
+        }
+
+        for (int i = 0; i < 31; i++)
+        {
+            g_map.setmapposition(position(96 + i, 95), image(' ', charColor));
+            g_map.setmapposition(position(96 + i, 103), image(' ', charColor));
+        }
+        
+
+        
+        for (int i = 0; i < 52; i++)
+        {
+            g_map.setmapposition(position(22 + i, 107), image(' ', charColor));
+        }
+
+        for (int i = 0; i < 33; i++)
+        {
+            g_map.setmapposition(position(33 + i, 85), image(' ', charColor));
+            g_map.setmapposition(position(33 + i, 92), image(' ', charColor));
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            g_map.setmapposition(position(36, 94 + i), image(' ', charColor));
+            g_map.setmapposition(position(43, 94 + i), image(' ', charColor));
+        }
+        for (int i = 0; i < 26; i++)
+        {
+            g_map.setmapposition(position(101 + i, 84 ), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 93), image(' ', charColor));
+        }
+
+        entities[0]->setpos(position(100, 199), g_map);
+    }
+}
+/*list of colours used:
+g_map
+240  -> walls (fg: NULL    bg: white    text: NULL)
+213  -> virus (fg: purple  bg: magenta  text: 15)
+ 10  -> player(fg: light_green bg: NULL text: 1)
+0x0B -> mask  (fg: white   bg: NULL     text: 'M')
+  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+
+bg_map
+reds -> fire  (fg: reds    bg: reds     text: -21)
+*/
+
+void rendertutorialscreen() // prints out instructions
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "Instructions:"; 
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);   
+    ss.str("");
+    ss << "W-A-S-D to move up/left/down/right";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Goal is to collect the mask and avoid the virus!";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    ss.str("");
+    ss << "Press <Enter> to continue";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 13;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
 
-//returns the entity that is in pos of g_map
-int getentityfrompos(position pos, map& g_map) {
-    for (int i = 0; i < MAXENTITY; i++)
-    {
-        if (entities[i] != NULL && entities[i]->getpos().get('x') == pos.get('x') && entities[i]->getpos().get('y') == pos.get('y'))
-        {
-            return i;
-        }
-    }
-    return -1; //-1 when no entity is in that position
+void Restart()
+{
 }
 
 void renderPause()
@@ -787,99 +1459,6 @@ void renderPause()
     }
 }
 
-void Restart()
-{
-}
-
-void mainMenu()
-{
-    std::ostringstream ss;
-    std::string key;
-    ss.str("");
-    ss << "Start";
-    COORD c = g_Console.getConsoleSize();
-    c.Y /= 3;
-    c.X = c.X / 2 - ss.tellp();
-    g_Console.writeToBuffer(c, ss.str(), 0x03);
-    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
-    {
-        g_eGameState = S_TUTORIAL;
-        g_mouseEvent.buttonState = 0;
-    }
-    ss.str("");
-    ss << "Exit";
-    c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp() - 1;
-    g_Console.writeToBuffer(c, ss.str(), 0x03);
-    if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
-    {
-        g_bQuitGame = true;
-    }
-}
-
-void rendertutorialscreen() // prints out instructions
-{
-    std::ostringstream ss;
-    std::string key;
-    ss.str("");
-    ss << "Instructions:"; 
-    COORD c = g_Console.getConsoleSize();
-    c.Y /= 3;
-    c.X = c.X / 2 - ss.tellp();
-    g_Console.writeToBuffer(c, ss.str(), 0x03);   
-    ss.str("");
-    ss << "W-A-S-D to move up/left/down/right";
-    c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 13;
-    g_Console.writeToBuffer(c, ss.str(), 0x03);
-    ss.str("");
-    ss << "Goal is to collect the mask and avoid the virus!";
-    c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 13;
-    g_Console.writeToBuffer(c, ss.str(), 0x03);
-    ss.str("");
-    ss << "Press <Enter> to continue";
-    c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 13;
-    g_Console.writeToBuffer(c, ss.str(), 0x03);
-    if (g_skKeyEvent[K_ENTER].keyReleased)
-    {
-        g_eGameState = S_GAME;
-        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
-    }
-}
-
-//render border walls
-void renderWall()
-{
-    for (int i = 0; i < g_map.getmapsize('x'); i++)
-    {
-        WORD charColor = 240; //bg white
-        g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
-        g_map.setmapposition(position(i, 0), image(' ', charColor)); //top wall border
-        for (int i = 0; i < g_map.getmapsize('y'); i++)
-        {
-            g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
-            g_map.setmapposition(position(g_map.getmapsize('x')-1, i), image(' ', charColor)); //right wall border
-        }
-    }
-}
-
-
-
-
-
-
-
-/*list of colours used:
-240 -> walls (fg: NULL    bg: white)
-  5 -> virus (fg: purple  bg: NULL)
- 10 -> player(fg: light_green bg: NULL)
-
-
-
-*/
-
 void updatePause()
 {
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
@@ -888,13 +1467,25 @@ void updatePause()
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
-/*list of colours used:
-240  -> walls (fg: NULL    bg: white    text: NULL)
-213  -> virus (fg: purple  bg: NULL     text: 15)
- 10  -> player(fg: light_green bg: NULL text: 1)
-0x0B -> mask  (fg: white   bg: NULL     text: 'M')
-  0  -> nothing(fg: NULL   bg:NULL      text: NULL)
 
-
-
-*/
+void renderOver()
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "GAME OVER!";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_MAIN;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+    ss.str("");
+    ss << "Press <Enter> to restart";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+}
