@@ -86,6 +86,7 @@
     <ClCompile Include="image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map.cpp" />
+    <ClCompile Include="NPC.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="position.cpp" />
     <ClCompile Include="Mask.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="NPC.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="Mask.h" />

@@ -36,10 +36,6 @@ map::map(int size_x, int size_y, position camerapos, position camerasize) :size_
 }
 
 map::~map() {
-	for (int x = 0; x < size_x; x++)
-	{
-		delete mapvalues[x];
-	}
 	delete mapvalues;
 }
 
@@ -75,6 +71,12 @@ int map::getmapsize(char xy) {
 //map
 void map::setmapposition(position pos, image i) {
 	mapvalues[pos.get('x')][pos.get('y')] = i;
+}
+void map::setmapposition(position start_pos, string& string, WORD colour) {
+	for (int i = 0; i < string.length(); i++)
+	{
+		mapvalues[start_pos.get('x') + i][start_pos.get('y')] = image(string[i], colour);
+	}
 }
 
 //other methods

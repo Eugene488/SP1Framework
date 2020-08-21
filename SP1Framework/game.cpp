@@ -16,6 +16,7 @@
 #include "player.h"
 #include "virus.h"
 #include "virus_spawner.h"
+#include "NPC.h"
 
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -33,7 +34,7 @@ map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //backg
 map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
 float virusspawntime;
 float virusspawntimer;
-float updatetime = 0.5f;
+float updatetime = 0.05f;
 float updatetimer = 0;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
@@ -108,6 +109,7 @@ void init( void )
     //debugging things
     entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
     entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
+    entities[3] = new NPC(position(180, 32), 10, 0, image(2, 1), "my IQ is low`my deck’s really wack`i press button get +2 GOLDEN attack", "firebald", g_map);
 }
 
 //--------------------------------------------------------------
@@ -1414,17 +1416,6 @@ void mapchange(int x)
         entities[0]->setpos(position(100, 199), g_map);
     }
 }
-/*list of colours used:
-g_map
-240  -> walls (fg: NULL    bg: white    text: NULL)
-213  -> virus (fg: purple  bg: magenta  text: 15)
-  0  -> player(fg: light_green bg: NULL text: 1)
-0x0B -> mask  (fg: white   bg: NULL     text: 'M')
-  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
-
-bg_map
-reds -> fire  (fg: reds    bg: reds     text: -21)
-*/
 
 void renderOver()
 {
@@ -1555,3 +1546,15 @@ void updatePause()
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
+
+/*list of colours used:
+g_map
+240  -> walls (fg: NULL    bg: white    text: NULL)
+213  -> virus (fg: purple  bg: magenta  text: 15)
+  0  -> player(fg: light_green bg: NULL text: 1)
+0x0B -> mask  (fg: white   bg: NULL     text: 'M')
+  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+
+bg_map
+reds -> fire  (fg: reds    bg: reds     text: -21)
+*/

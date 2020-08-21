@@ -35,6 +35,7 @@ public:
 	//setters
 	//map
 	void setmapposition(position, image);
+	void setmapposition(position start_pos, string& string, WORD colour);
 
 	//other methods
 	//map
