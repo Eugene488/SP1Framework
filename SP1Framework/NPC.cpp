@@ -17,10 +17,10 @@ void NPC::displaytext(string* sentence, int lines, WORD textcolour, map& fg_map)
 	}
 }
 void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_player) {
-	float distancefromplayer = sqrt((abs(g_player->getpos().get('x') - pos.get('x')) ^ 2) + (abs(g_player->getpos().get('y') - pos.get('y')) ^ 2));
+	float distancefromplayer = sqrt(pow(pos.get('x') - g_player->getpos().get('x'), 2) + pow(pos.get('y') - g_player->getpos().get('y'),2));
 	extern float debugtext;
-	//debugtext = distancefromplayer;
-	if (distancefromplayer <= 3)
+	debugtext = distancefromplayer;
+	if (distancefromplayer <= 15)
 	{
 		if (currentsentenceposition <= dialogue.length())
 		{
@@ -28,7 +28,7 @@ void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_p
 			if (char_to_add == '`')
 			{
 				currentsentencenumber += 1;
-				displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
+				displaytext(currentsentences, currentsentencenumber, 15, fg_map);
 				int lengthy = currentsentences[currentsentencenumber - 2].length();
 				for (int i = 0; i < lengthy; i++)
 				{
@@ -39,7 +39,7 @@ void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_p
 			else
 			{
 				currentsentences[currentsentencenumber - 1] += char_to_add;
-				displaytext(currentsentences, currentsentencenumber, FOREGROUND_RED + BACKGROUND_GREEN, fg_map);
+				displaytext(currentsentences, currentsentencenumber, 15, fg_map);
 			}
 			currentsentenceposition += 1;
 		}
@@ -52,7 +52,7 @@ void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_p
 		}
 		else
 		{
-			debugtext += 1;
+			//removing the text on screen
 			for (int i = 0; i < currentsentencenumber; i++)
 			{
 				int lengthy = currentsentences[i].length();
