@@ -12,7 +12,8 @@ private:
 	//camera members
 	position camerapos; //camera will be 0,0 for the rendering
 	position camerasize; //camera size is how big the camera is (square shaped); while it uses position, it's just to store the xy size
-
+	float truex;
+	float truey;
 	//map members
 	image** mapvalues;
 	int size_x;
@@ -43,5 +44,6 @@ public:
 	void map::fill(image* image_arr, int image_arr_size, int* weightage);
 	//camera
 	void centerOnPlayer(position playerpos);
+	void centerOnPlayerSmooth(position playerpos, double dt);
 };
 

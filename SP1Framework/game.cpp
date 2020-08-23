@@ -55,7 +55,13 @@ image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), ima
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
 //nature bg
 image bg_images_green[] = { image(NULL, 160) };
-int bg_weightage_green[] = { 2 };
+int bg_weightage_green[] = { 1 };
+//outer-space bgc
+image bgc_images_space[] = {image(NULL, 0), image('+', 15), image('*', 15)};
+int bgc_weightage_space[] = {80    ,              1  ,              1 };
+//outer-space bg
+image bg_images_black[] = { image(NULL, 0) };
+int bg_weightage_black[] = { 1 };
 
 //debugging things
 float debugtext; //will be rendered at mousepos
@@ -86,9 +92,9 @@ void init( void )
     //init maps
     renderWall(); //creating the border walls
     //background char map
-    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
     //background colour only map
-    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
+    bg_map.fill(bg_images_black, size(bg_images_black), bg_weightage_black);
     // Setting attributes of player
     g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
@@ -325,22 +331,7 @@ void update(double dt)
     case S_SPLASHSCREEN: splashScreenWait(); // game logic for the splash screen
         break;
     case S_GAME:
-    //increasing spawn timer for virus
-    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
-        // get the delta time
-        g_dElapsedTime -= dt;
-
-        updatetimer += dt;
-
-        // increasing spd timer for entities
-        for (int i = 0; i < MAXENTITY; i++)
-        {
-            if (entities[i] != NULL)
-            {
-                entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
-            }
-        }
-        updateGame(); // gameplay logic when we are in the game
+        updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
         updatePause();
@@ -365,9 +356,24 @@ void splashScreenWait()    // waits for time to pass in splash screen
     g_eGameState = S_GAME;
 }
 
-void updateGame()       // gameplay logic
+void updateGame(double dt)       // gameplay logic
 {
-    //debugging things
+    //timer related things
+    //increasing spawn timer for virus
+    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
+    // get the delta time
+    g_dElapsedTime -= dt;
+    updatetimer += dt;
+
+    // increasing spd timer for entities
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+        }
+    }
+
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
     //updating things based on delta time for entities
     if (updatetimer >= updatetime)
@@ -418,6 +424,7 @@ void updateGame()       // gameplay logic
         virusspawntime = rand() % 2;
         spawnvirus();
     }
+    g_map.centerOnPlayerSmooth(g_player->getpos(), dt);
 }
 
 void moveCharacter()
@@ -602,7 +609,7 @@ void renderMap()
     
     //rendering the maps
     COORD c;
-    g_map.centerOnPlayer(entities[0]->getpos());
+    //g_map.centerOnPlayer(entities[0]->getpos());
     int camposx = g_map.getcampos().get('x');
     int camsizex = g_map.getcamsize().get('x');
     int camposy = g_map.getcampos().get('y');
