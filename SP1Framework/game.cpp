@@ -54,14 +54,14 @@ Console g_Console(80, 25, "Mask of Yendor");
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
 //nature bg
-image bg_images_green[] = { image(NULL, 160) };
-int bg_weightage_green[] = { 1 };
+image bg_images_nature[] = { image(NULL, 160) };
+int bg_weightage_nature[] = { 1 };
 //outer-space bgc
 image bgc_images_space[] = {image(NULL, 0), image('+', 15), image('*', 15)};
 int bgc_weightage_space[] = {80    ,              1  ,              1 };
 //outer-space bg
-image bg_images_black[] = { image(NULL, 0) };
-int bg_weightage_black[] = { 1 };
+image bg_images_space[] = { image(NULL, 0) };
+int bg_weightage_space[] = { 1 };
 
 //debugging things
 float debugtext; //will be rendered at mousepos
@@ -87,14 +87,14 @@ void init( void )
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 0));
+    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 11));
     
     //init maps
     renderWall(); //creating the border walls
     //background char map
     bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
     //background colour only map
-    bg_map.fill(bg_images_black, size(bg_images_black), bg_weightage_black);
+    bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
     // Setting attributes of player
     g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
@@ -903,7 +903,7 @@ void mapchange(int x)
     //background char map
     bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
     //background colour only map
-    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
+    bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
 
     if (maplevel == 1)
