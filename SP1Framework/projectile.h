@@ -5,7 +5,8 @@ class projectile :public entity
 private:
 	float truex;
 	float truey;
-	position direction;
+	float directionx;
+	float directiony;
 	string target;
 	int dmg;
 public:

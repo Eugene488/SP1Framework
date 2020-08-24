@@ -8,7 +8,7 @@ private:
 	float invulntime;
 	float invulntimer;
 	float firerate = 1;
-	float fireratetimer;
+	float fireratetimer = 0;
 public:
 	player();
 	~player();

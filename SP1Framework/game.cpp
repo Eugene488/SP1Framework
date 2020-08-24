@@ -356,7 +356,6 @@ void update(double dt)
                 entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
             }
         }
-        updateGame(); // gameplay logic when we are in the game
         updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
@@ -542,10 +541,17 @@ void moveCharacter()
     }
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
-        debugtext += 1;
         if (g_player->getfireratetimer() >= g_player->getfirerate())
         {
-            //TODO
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[i] == NULL)
+                {
+                    debugtext += 1;
+                    entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
+                    break;
+                }
+            }
         }
     }
 }
@@ -1195,10 +1201,6 @@ void mapchange(int x)
     if (maplevel == 4)
     {
         g_dElapsedTime = 100.0; // susceptible to changes for level 4
-        for (int i = 0; i < 10; i++)
-        {
-            entities[i] = new virus_spawner(position(191, 31), 0.1f, g_map);
-        }
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
