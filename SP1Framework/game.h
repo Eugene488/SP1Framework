@@ -99,6 +99,7 @@ void renderWall();
 void maskrenderout();
 void updatePause(); // check user input
 void renderMask(); // spawns mask
+void renderTP();
 void renderPause(); // displays pause menu
 void Restart(); // restarts game
 void mainMenu(); // main menu
