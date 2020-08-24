@@ -7,7 +7,7 @@ class player :public entity
 private:
 	float invulntime;
 	float invulntimer;
-	float firerate = 1;
+	float firerate = 0.1f;
 	float fireratetimer = 0;
 public:
 	player();

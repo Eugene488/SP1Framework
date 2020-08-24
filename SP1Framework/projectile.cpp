@@ -19,14 +19,13 @@ void projectile::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int 
 	if (collisiondetection(solids, listsize, futurloc, g_map))
 	{
 		prevloc = getpos();
-		g_map.setmapposition(prevloc, previmg);
 		previmg = image(NULL, 0);
-		setpos(futurloc, g_map);
-		if (triggerdetection(g_map, bg_map, bgc_map, pos, "g_map") == target)
+		string tileitson = triggerdetection(g_map, bg_map, bgc_map, futurloc, "g_map");
+		if (tileitson == target)
 		{
 			extern void getentityfrompos(int* ptr, position pos, map & g_map);
 			int* idxs = new int[MAXENTITY];
-			getentityfrompos(idxs, pos, g_map);
+			getentityfrompos(idxs, futurloc, g_map);
 			if (idxs[0] != -1)
 			{
 				for (int i = 0; i < MAXENTITY; i++)
@@ -42,6 +41,8 @@ void projectile::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int 
 				}
 			}
 		}
+		g_map.setmapposition(prevloc, previmg);
+		setpos(futurloc, g_map);
 	}
 	else
 	{
