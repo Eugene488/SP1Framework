@@ -17,6 +17,7 @@
 #include "virus_spawner.h"
 #include "NPC.h"
 #include "projectile.h"
+#include "boulder.h"
 
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 double  g_dElapsedTime;
@@ -39,9 +40,10 @@ float updatetimer = 0;
 const int MAXENTITY = 500;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
-WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
+WORD solids[] = {240, 2+80, 8}; //list of solid objects that will stop movement, add the colour here
 /*current list: 240  =   white  = walls
                 2+80 =  bg:purple fg:green = virus_spawner
+                8    =  bg:NULL   fg:grey  = boulder (barricade from protesting)
 */
 bool mouse_tooltip_enabled;
 player* g_player;
@@ -124,7 +126,7 @@ void init(void)
     {
         if (entities[i] == NULL)
         {
-            entities[i] = new fire(position(190, 35), 1, 3, g_map, bg_map);
+            entities[i] = new boulder(position(190, 35), 1, g_map);
             break;
         }
     }
@@ -392,7 +394,7 @@ void updateGame(double dt)       // gameplay logic
     //g_dElapsedTime -= dt;
     updatetimer += dt;
     
-    // increasing spd timer for entities
+    // increasing timers for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
         if (entities[i] != NULL)
@@ -479,6 +481,11 @@ void moveCharacter()
     {
         if (static_cast<WORD>(g_map.getmapposition(futurloc).getcolour()) == static_cast<WORD>(solids[i]))
         {
+            if (g_map.getmapposition(futurloc).getcolour() == static_cast<WORD>(8))
+            {
+                getentityfrompos(idx, futurloc, g_map);
+                entities[idx[0]]->move(g_map, bg_map, bgc_map, solids, size(solids), entities, MAXENTITY);
+            }
             futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
             break;
         }
@@ -1777,7 +1784,9 @@ g_map
   0  -> player(fg: light_green bg: NULL text: 1)
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+  8  -> boulder(fg: grey   bg: NULL     text: '#')
 
 bg_map
 reds -> fire  (fg: reds    bg: reds     text: -21)
+144  -> water (fg: NULL    bg: blue     text: NULL)
 */
