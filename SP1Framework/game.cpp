@@ -42,7 +42,7 @@ float updatetimer = 0;
 
 const int MAXENTITY = 200;
 
-const int MAXENTITY = 500;
+
 
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
@@ -515,12 +515,16 @@ void moveCharacter()
     WORD g_mapcolour1 = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
     if (g_mapcolour1 == static_cast<WORD>(0x0D)) //TP
     {
-        
+       
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
+        maskrenderout();
         
         
     }
+   
+    
+    
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(&idx[0], futurloc, g_map);
@@ -537,8 +541,8 @@ void moveCharacter()
                     entities[idx[i]]->sethp(0);
                     if (toiletpaperbuff == true && g_dbufftime < 5.0)
                     {
-                        WORD charColor = 0x00;
-                        g_map.setmapposition(position(152, 15), image('T', charColor));
+                        
+                        
                         g_player->takedmg(0);
                     }
                     
@@ -1009,7 +1013,7 @@ void renderMask()
     {
 
         WORD charColor = 0x0C;
-        g_map.setmapposition(position(20, 10), image('M', charColor));
+        g_map.setmapposition(position(126, 55), image('M', charColor));
 
     }
     else if (maplevel == 3)
@@ -1033,11 +1037,7 @@ void renderMask()
 
 void renderTP()
 {
-    if (maplevel == 1)
-    {
-        WORD charColor = 0x0D;
-        g_map.setmapposition(position(152, 15), image('T', charColor));
-    }
+    
 }
 
 //render border walls
@@ -1307,7 +1307,8 @@ void mapchange(int x)
             g_map.setmapposition(position(181 + i, 28 ), image(' ', charColor));
         }
         //END OF FILLING
-
+        WORD charColor = 0x0D;
+        g_map.setmapposition(position(152, 15), image('T', charColor));
         // END OF MAP 1 DESIGN
     }
     
@@ -1315,12 +1316,198 @@ void mapchange(int x)
     {
         g_dElapsedTime = 75.0; // susceptible to changes for level 2
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 11; i++) //Map 2's Skeleton
         {
-
-            g_map.setmapposition(position(i, 1), image(' ', 240));
+            g_map.setmapposition(position(71, i), image(' ', charColor));
+            g_map.setmapposition(position(131, i), image(' ', charColor));
+            g_map.setmapposition(position(51, 10 + i), image(' ', charColor));
+            g_map.setmapposition(position(151, 10 + i), image(' ', charColor));
+            g_map.setmapposition(position(41, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(161, 20 + i), image(' ', charColor));
+            g_map.setmapposition(position(51, 30 + i), image(' ', charColor));
+            g_map.setmapposition(position(151, 30 + i), image(' ', charColor));
+            g_map.setmapposition(position(71, 40 + i), image(' ', charColor));
+            g_map.setmapposition(position(131, 40 + i), image(' ', charColor));
+            g_map.setmapposition(position(71, 50 + i), image(' ', charColor));
+            g_map.setmapposition(position(131, 50 + i), image(' ', charColor));
+            g_map.setmapposition(position(51, 60 + i), image(' ', charColor));
+            g_map.setmapposition(position(151, 60 + i), image(' ', charColor));
+            g_map.setmapposition(position(41, 70 + i), image(' ', charColor));
+            g_map.setmapposition(position(161, 70 + i), image(' ', charColor));
+            g_map.setmapposition(position(51, 80 + i), image(' ', charColor));
+            g_map.setmapposition(position(151, 80 + i), image(' ', charColor));
+            g_map.setmapposition(position(71, 90 + i), image(' ', charColor));
+            g_map.setmapposition(position(131, 90 + i), image(' ', charColor));
+            g_map.setmapposition(position(51 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(131 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(141 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(41 + i, 20), image(' ', charColor));
+            g_map.setmapposition(position(151 + i, 20), image(' ', charColor));
+            g_map.setmapposition(position(41 + i, 30), image(' ', charColor));
+            g_map.setmapposition(position(151 + i, 30), image(' ', charColor));
+            g_map.setmapposition(position(51 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(131 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(141 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(51 + i, 60), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 60), image(' ', charColor));
+            g_map.setmapposition(position(131 + i, 60), image(' ', charColor));
+            g_map.setmapposition(position(141 + i, 60), image(' ', charColor));
+            g_map.setmapposition(position(41 + i, 70), image(' ', charColor));
+            g_map.setmapposition(position(151 + i, 70), image(' ', charColor));
+            g_map.setmapposition(position(41 + i, 80), image(' ', charColor));
+            g_map.setmapposition(position(151 + i, 80), image(' ', charColor));
+            g_map.setmapposition(position(51 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(131 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(141 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(71 + i, 100), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 100), image(' ', charColor));
+            g_map.setmapposition(position(91 + i, 100), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 100), image(' ', charColor));
+            g_map.setmapposition(position(111 + i, 100), image(' ', charColor));
+            g_map.setmapposition(position(121 + i, 100), image(' ', charColor));
         }
-        entities[0]->setpos(position(9, 30), g_map);
+        for (int i = 0; i < 41; i++) //Map 2's Juicy Insides 
+        {
+            g_map.setmapposition(position(81 + i, 6), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 7), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 8), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 9), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 10), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 11), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 12), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 13), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 14), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 15), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 16), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 16), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 17), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 17), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 18), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 18), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 19), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 19), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 20), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 20), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 21), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 21), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 22), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 22), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 23), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 23), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 24), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 24), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 25), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 25), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 26), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 26), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 27), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 27), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 28), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 28), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 29), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 29), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 30), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 30), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 31), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 31), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 32), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 32), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 33), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 33), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 34), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 34), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 35), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 35), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 36), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 37), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 38), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 39), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 40), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 41), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 42), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 43), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 44), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 55), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 56), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 57), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 58), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 59), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 60), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 61), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 62), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 63), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 64), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 64), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 65), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 65), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 66), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 66), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 67), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 67), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 68), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 68), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 69), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 69), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 70), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 70), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 71), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 71), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 72), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 72), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 73), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 73), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 74), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 74), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 75), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 75), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 76), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 76), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 77), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 77), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 78), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 78), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 79), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 79), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 80), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 80), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 81), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 81), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 82), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 82), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 83), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 83), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 84), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 84), image(' ', charColor));
+            g_map.setmapposition(position(61 + i, 85), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 85), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 86), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 87), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 88), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 89), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 90), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 91), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 92), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 93), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 94), image(' ', charColor));
+            g_map.setmapposition(position(81 + i, 95), image(' ', charColor));
+        }
+        for (int i = 0; i < 31; i++) // Map 3 Mid-Section
+        {
+            g_map.setmapposition(position(101 + i, 45), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 46), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 47), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 48), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 49), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 50), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 51), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 52), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 53), image(' ', charColor));
+            g_map.setmapposition(position(101 + i, 54), image(' ', charColor));
+        }
+        entities[0]->setpos(position(126, 44), g_map);
         
 
     }
@@ -1342,6 +1529,8 @@ void mapchange(int x)
         entities[7] = new virus_spawner(position(63, 75), 0.1f, g_map);
         entities[8] = new virus_spawner(position(150, 108), 0.1f, g_map);
         entities[9] = new virus_spawner(position(83, 141), 0.1f, g_map);
+        entities[10] = new virus_spawner(position(114, 88), 0.1f, g_map);
+        entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
         g_dElapsedTime = 1000.0; // susceptible to changes for level 4
         for (int i = 0; i < 6; i++)
         {
@@ -1626,6 +1815,8 @@ void mapchange(int x)
             g_map.setmapposition(position(101 + i, 84 ), image(' ', charColor));
             g_map.setmapposition(position(101 + i, 93), image(' ', charColor));
         }
+        WORD charColor = 0x0D;
+        g_map.setmapposition(position(85, 87), image('T', charColor));
 
         entities[0]->setpos(position(100, 199), g_map);
     }
