@@ -9,8 +9,9 @@ private:
 	float directiony;
 	string target;
 	int dmg;
+	image trailimg;
 public:
-	projectile(position startpos, position endpos, image projectile_image, float spd, string name, map& g_map, string target, int dmg);
+	projectile(position startpos, position endpos, image projectile_image, float spd, string name, map& g_map, string target, int dmg, image trailimg);
 	~projectile();
 
 	//other methods
