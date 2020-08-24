@@ -1,6 +1,6 @@
 #include "player.h"
 
-player::player(): entity(position(0,0), image('P', 18), spd, 3, "player"), invulntime(0.5f), invulntimer(0){}
+player::player(): entity(position(0,0), image('P', 18), spd, 5, "player"), invulntime(0.5f), invulntimer(0){}
 player::~player() {
 	//do nothing
 }
