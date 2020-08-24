@@ -950,8 +950,8 @@ void mapchange(int x)
     {
         g_dElapsedTime = 30.0; // susceptible to changes for level 1
         
-        entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
-        entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
+        entities[1] = new virus_spawner(position(136, 11), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(107, 35), 0.1f, g_map);
         
         
      
