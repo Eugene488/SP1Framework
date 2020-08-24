@@ -545,10 +545,17 @@ void moveCharacter()
     }
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
-        debugtext += 1;
         if (g_player->getfireratetimer() >= g_player->getfirerate())
         {
-            //TODO
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[i] == NULL)
+                {
+                    debugtext += 1;
+                    entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
+                    break;
+                }
+            }
         }
     }
 }
