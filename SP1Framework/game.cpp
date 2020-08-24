@@ -504,7 +504,11 @@ void moveCharacter()
                 else
                 {
                     entities[idx[i]]->sethp(0);
-                    g_player->takedmg(1);                   
+                    g_player->takedmg(1);
+                    if (g_player->gethp() < 1)
+                    {
+                        g_eGameState = S_OVER;
+                    }
                     //TODO other negative effects
                 }
             }
