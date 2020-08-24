@@ -86,7 +86,7 @@ void init(void)
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 11));
+    entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
     mapchange(1);
 
     //init maps
@@ -729,6 +729,12 @@ void renderFramerate()
     ss << g_dElapsedTime << "secs";
     c.X = 0;
     c.Y = 0;
+    g_Console.writeToBuffer(c, ss.str(), 0x59);
+
+    ss.str("");
+    ss << g_player->gethp() << " lives";
+    c.X = 0;
+    c.Y = 1;
     g_Console.writeToBuffer(c, ss.str(), 0x59);
 }
 
