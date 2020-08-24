@@ -504,7 +504,11 @@ void moveCharacter()
                 else
                 {
                     entities[idx[i]]->sethp(0);
-                    g_player->takedmg(1);                   
+                    g_player->takedmg(1);
+                    if (g_player->gethp() < 1)
+                    {
+                        g_eGameState = S_OVER;
+                    }
                     //TODO other negative effects
                 }
             }
@@ -947,14 +951,14 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-    if (maplevel <5)
+    if (maplevel < 5)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
-        g_dElapsedTime = 50.0; // susceptible to changes for level 1
+        g_dElapsedTime = 30.0; // susceptible to changes for level 1
         
-        entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
-        entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
+        entities[1] = new virus_spawner(position(136, 11), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(107, 35), 0.1f, g_map);
         
         
      
