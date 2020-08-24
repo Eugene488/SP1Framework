@@ -552,7 +552,7 @@ void moveCharacter()
                 if (entities[i] == NULL)
                 {
                     debugtext += 1;
-                    entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
+                    //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
                     break;
                 }
             }
@@ -1556,13 +1556,13 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
         g_Console.writeToBuffer(c, ss.str(), 0x03);
     }
 
-    if (g_skKeyEvent[K_ENTER].keyReleased)
+    if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
         g_eGameState = S_GAME;
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
     ss.str("");
-    ss << "Press <Enter> to continue";
+    ss << "Click to continue";
     c.Y += 1;
     c.X = g_Console.getConsoleSize().X / 2 - 10;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
