@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 1;
+int maplevel = 5;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -98,7 +98,8 @@ void init(void)
         entities[i] = NULL;
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
-    mapchange(1);
+    g_player = static_cast<player*>(entities[0]);
+    mapchange(5);
     //init maps
     renderWall(); //creating the border walls
     //background char map
@@ -106,7 +107,6 @@ void init(void)
     //background colour only map
     bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
     // Setting attributes of player
-    g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
     for (int i = 0; i < MAXTOOLS; i++)
     {
@@ -132,8 +132,6 @@ void init(void)
     {
         if (entities[i] == NULL)
         {
-            entities[i] = new boulder(position(190, 35), 1, g_map);
-            entities[i + 1] = new boss(position(190, 34), 1, g_map);
             break;
         }
     }
@@ -753,7 +751,14 @@ void renderMap()
     
     //rendering the maps
     COORD c;
-    g_map.centerOnPlayer(entities[0]->getpos());
+    if (maplevel != 5)
+    {
+        g_map.centerOnPlayer(entities[0]->getpos());
+    }
+    else
+    {
+        g_map.centerOnPlayer(position(39, 12));
+    }
     int camposx = g_map.getcampos().get('x');
     int camsizex = g_map.getcamsize().get('x');
     int camposy = g_map.getcampos().get('y');
@@ -1025,7 +1030,7 @@ void renderMask()
         g_map.setmapposition(position(79, 72), image('M', charColor));
 
     }
-    else if (maplevel == 5)
+    else if (maplevel == 6)
     {
         g_eGameState = S_WIN;
     }
@@ -1080,7 +1085,7 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-    if (maplevel < 5)
+    if (maplevel < 6)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
@@ -1629,6 +1634,22 @@ void mapchange(int x)
 
         entities[0]->setpos(position(100, 199), g_map);
     }
+    if (maplevel == 5)
+    {
+        g_dElapsedTime = 999;
+        g_player->setpos(position(39, 18), g_map);
+        bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+        bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
+        for (int i = 0; i < 25; i++)
+        {
+            g_map.setmapposition(position(79, i), image(NULL, 240));
+        }
+        for (int i = 0; i < 79; i++)
+        {
+            g_map.setmapposition(position(i, 24), image(NULL, 240));
+        }
+        entities[1] = new boss(position(39, 3), 1, g_map);
+    }
 }
 
 void renderOver() // render game over screen
@@ -1687,6 +1708,13 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
         c.X = c.X / 2 - ss.tellp() + 9;
         g_Console.writeToBuffer(c, ss.str(), 0x03);
     }
+    else if (maplevel == 5)
+    {
+        ss << "Level " << maplevel << ": ???";
+        c.Y /= 3;
+        c.X = (c.X - ss.tellp()) / 2;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
 
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
@@ -1696,7 +1724,7 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
     ss.str("");
     ss << "Click to continue";
     c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    c.X = (g_Console.getConsoleSize().X - ss.tellp() )/ 2;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
 }
 
