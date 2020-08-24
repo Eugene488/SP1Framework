@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <random>
-
 #include "entity.h"
 #include "fire.h"
 #include "player.h"
@@ -19,12 +18,12 @@
 #include "NPC.h"
 #include "projectile.h"
 
+bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 double  g_dElapsedTime;
 double  g_dDeltaTime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 int maplevel = 1;
-
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -46,7 +45,6 @@ WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, ad
 */
 bool mouse_tooltip_enabled;
 player* g_player;
-
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
@@ -102,7 +100,7 @@ void init(void)
     previmg = image(NULL, 0);
 
     // Set precision for floating point output
-    g_dElapsedTime = 3600.0;    // Susceptible to change 
+    //g_dElapsedTime = 3600.0;    // Susceptible to change
 
     // sets the initial state for the game
     g_eGameState = S_MAIN;
@@ -189,6 +187,10 @@ void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent)
         break;
     case S_TUTORIAL:gameplayKBHandler(keyboardEvent);
         break;
+    case S_MAPT:gameplayKBHandler(keyboardEvent);
+        break;
+    case S_WIN:gameplayKBHandler(keyboardEvent);
+        break;
     }
 }
 
@@ -222,9 +224,11 @@ void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent)
         break;
     case S_MAIN:gameplayMouseHandler(mouseEvent);
         break;
-    case S_OVER: // nothing
+    case S_OVER: gameplayMouseHandler(mouseEvent);
         break;
-    case S_TUTORIAL: // nothing
+    case S_TUTORIAL: gameplayMouseHandler(mouseEvent);
+        break;
+    case S_MAPT: gameplayMouseHandler(mouseEvent);
         break;
     }
 }
@@ -337,14 +341,28 @@ void update(double dt)
     case S_SPLASHSCREEN: splashScreenWait(); // game logic for the splash screen
         break;
     case S_GAME:
+        //increasing spawn timer for virus
+        //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
+            // get the delta time
+        g_dElapsedTime -= dt;
+
+        updatetimer += dt;
+
+        // increasing spd timer for entities
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] != NULL)
+            {
+                entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+            }
+        }
+        updateGame(); // gameplay logic when we are in the game
         updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
         updatePause();
         break;
-    case S_RESTART:
-        maplevel = 1;
-        Restart();
+    case S_RESTART:Restart();
         break;
     case S_MAIN: mainMenu();
         break;
@@ -352,8 +370,10 @@ void update(double dt)
         break;
     }
 
-    if (g_dElapsedTime < 0)
-        g_bQuitGame = true; //Once timer hits 0, Game Over
+    if (g_dElapsedTime <= 0)
+    {
+        g_eGameState = S_OVER; //Once timer hits 0, Game Over
+    }
 }
 
 
@@ -485,7 +505,7 @@ void moveCharacter()
                 else
                 {
                     entities[idx[i]]->sethp(0);
-                    g_player->takedmg(1);
+                    g_player->takedmg(1);                   
                     //TODO other negative effects
                 }
             }
@@ -564,6 +584,11 @@ void render()
     case S_OVER:renderOver();
         break;
     case S_TUTORIAL:rendertutorialscreen();
+        break;
+    case S_MAPT:renderTrans();
+        break;
+    case S_WIN:renderWin();
+        break;
     }
     renderFramerate();      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
@@ -872,9 +897,7 @@ void renderMask()
     }
     else if (maplevel == 5)
     {
-        g_bQuitGame = true;
-
-
+        g_eGameState = S_WIN;
     }
 }
 
@@ -918,15 +941,17 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-
+    if (maplevel <5)
+        g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
+        g_dElapsedTime = 50.0; // susceptible to changes for level 1
         
         entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
         entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
         
         
-        
+     
         for (int i = 0; i < 40; i++)
         {
             g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
@@ -1149,7 +1174,7 @@ void mapchange(int x)
     
     if (maplevel == 2)
     {
-
+        g_dElapsedTime = 75.0; // susceptible to changes for level 2
 
         for (int i = 0; i < 5; i++)
         {
@@ -1162,12 +1187,14 @@ void mapchange(int x)
     }
     if (maplevel == 3)
     {
+        g_dElapsedTime = 80.0; // susceptible to changes for level 3
         g_map.setmapposition(position(20, 1), image(' ', 240));
         entities[0]->setpos(position(4, 45), g_map);
 
     }
     if (maplevel == 4)
     {
+        g_dElapsedTime = 100.0; // susceptible to changes for level 4
         for (int i = 0; i < 10; i++)
         {
             entities[i] = new virus_spawner(position(191, 31), 0.1f, g_map);
@@ -1460,7 +1487,7 @@ void mapchange(int x)
     }
 }
 
-void renderOver()
+void renderOver() // render game over screen
 {
     std::ostringstream ss;
     std::string key;
@@ -1472,7 +1499,7 @@ void renderOver()
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if (g_skKeyEvent[K_ENTER].keyReleased)
     {
-        g_eGameState = S_MAIN;
+        Restart();
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
     ss.str("");
@@ -1482,7 +1509,79 @@ void renderOver()
     g_Console.writeToBuffer(c, ss.str(), 0x03);
 }
 
-void renderPause()
+void renderTrans() // render map transition screen (level 1 .. level 2 ..)
+{
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    COORD c = g_Console.getConsoleSize();
+    if (maplevel == 1)
+    {
+        ss << "Level " << maplevel << ": Tutorial Toad";
+        c.Y /= 3;
+        c.X = c.X / 2 - ss.tellp() + 12;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
+    else if (maplevel == 2)
+    {
+        ss << "Level " << maplevel << ": Kobe Bryant";
+        c.Y /= 3;
+        c.X = c.X / 2 - ss.tellp() + 10;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
+    else if (maplevel == 3)
+    {
+        ss << "Level " << maplevel << ": Black Lives Matter";
+        c.Y /= 3;
+        c.X = c.X / 2 - ss.tellp() + 17;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
+    else if (maplevel == 4)
+    {
+        ss << "Level " << maplevel << ": Team Trees";
+        c.Y /= 3;
+        c.X = c.X / 2 - ss.tellp() + 9;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
+
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        g_eGameState = S_GAME;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+    ss.str("");
+    ss << "Press <Enter> to continue";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+}
+
+void renderWin() // render win screen
+{
+    
+    std::ostringstream ss;
+    std::string key;
+    ss.str("");
+    ss << "YOU WIN!";
+    COORD c = g_Console.getConsoleSize();
+    c.Y /= 3;
+    c.X = c.X / 2 - ss.tellp();
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+    if (g_skKeyEvent[K_ENTER].keyReleased)
+    {
+        Restart();
+        g_eGameState = S_MAIN;
+        memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+        
+    }
+    ss.str("");
+    ss << "Press <Enter> to go to main menu";
+    c.Y += 1;
+    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    g_Console.writeToBuffer(c, ss.str(), 0x03);
+}
+
+void renderPause() // render pause screen
 {
     std::ostringstream ss;
     std::string key;
@@ -1520,12 +1619,13 @@ void renderPause()
     }
 }
 
-void Restart()
+void Restart() // restarts the game back to level 1
 {
+    maplevel = 1;
+    mapchange(maplevel);
     shutdown();
     init();
     g_eGameState = S_GAME;
-    
 }
 
 void mainMenu()
@@ -1533,10 +1633,15 @@ void mainMenu()
     std::ostringstream ss;
     std::string key;
     ss.str("");
-    ss << "Start";
+    ss << "Mask of Yendor";
     COORD c = g_Console.getConsoleSize();
     c.Y /= 3;
-    c.X = c.X / 2 - ss.tellp();
+    c.X = c.X / 2 - ss.tellp() +5;
+    g_Console.writeToBuffer(c, ss.str(), 0x04);
+    ss.str("");
+    ss << "Start";
+    c.Y += 3;
+    c.X = g_Console.getConsoleSize().X / 2 - ss.tellp();
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
@@ -1581,13 +1686,14 @@ void rendertutorialscreen() // prints out instructions
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if (g_skKeyEvent[K_ENTER].keyReleased)
     {
-        g_eGameState = S_GAME;
+        g_eGameState = S_MAPT;
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
 }
 
-void updatePause()
+void updatePause() // unpause 
 {
+    
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
     {
         g_eGameState = S_GAME;
