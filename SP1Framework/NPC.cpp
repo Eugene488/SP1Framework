@@ -18,8 +18,6 @@ void NPC::displaytext(string* sentence, int lines, WORD textcolour, map& fg_map)
 }
 void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_player) {
 	float distancefromplayer = sqrt(pow(pos.get('x') - g_player->getpos().get('x'), 2) + pow(pos.get('y') - g_player->getpos().get('y'),2));
-	extern float debugtext;
-	debugtext = distancefromplayer;
 	if (distancefromplayer <= 15)
 	{
 		if (currentsentenceposition <= dialogue.length())

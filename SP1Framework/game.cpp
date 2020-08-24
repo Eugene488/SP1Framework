@@ -16,6 +16,8 @@
 #include "virus.h"
 #include "virus_spawner.h"
 #include "NPC.h"
+#include "projectile.h"
+
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -111,7 +113,13 @@ void init(void)
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] == NULL)
+        {
+            //debug entities
+        }
+    }
 }
 
 //--------------------------------------------------------------
@@ -381,13 +389,13 @@ void updateGame(double dt)       // gameplay logic
     // get the delta time
     g_dElapsedTime -= dt;
     updatetimer += dt;
-
+    
     // increasing spd timer for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
         if (entities[i] != NULL)
         {
-            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+            entities[i]->updatetimers(dt);
         }
     }
 
@@ -441,7 +449,6 @@ void updateGame(double dt)       // gameplay logic
         virusspawntime = rand() % 2;
         spawnvirus();
     }
-    g_map.centerOnPlayerSmooth(g_player->getpos(), dt);
 }
 
 void moveCharacter()
@@ -531,6 +538,14 @@ void moveCharacter()
         mouse_tooltip_enabled = !mouse_tooltip_enabled;
         g_skKeyEvent[K_T].keyDown = 0;
         g_skKeyEvent[K_T].keyReleased = 0;
+    }
+    if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+    {
+        debugtext += 1;
+        if (g_player->getfireratetimer() >= g_player->getfirerate())
+        {
+            //TODO
+        }
     }
 }
 
@@ -631,7 +646,7 @@ void renderMap()
     
     //rendering the maps
     COORD c;
-    //g_map.centerOnPlayer(entities[0]->getpos());
+    g_map.centerOnPlayer(entities[0]->getpos());
     int camposx = g_map.getcampos().get('x');
     int camsizex = g_map.getcamsize().get('x');
     int camposy = g_map.getcampos().get('y');
