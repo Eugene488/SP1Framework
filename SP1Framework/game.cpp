@@ -15,6 +15,7 @@
 #include "player.h"
 #include "virus.h"
 #include "virus_spawner.h"
+#include "NPC.h"
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -31,7 +32,7 @@ map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //backg
 map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
 float virusspawntime;
 float virusspawntimer;
-float updatetime = 0.5f;
+float updatetime = 0.05f;
 float updatetimer = 0;
 const int MAXENTITY = 50;
 entity* entities[MAXENTITY]; //stores all entities that move
@@ -50,8 +51,14 @@ Console g_Console(80, 25, "Mask of Yendor");
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
 int bgc_weightage_nature[] = { 80,        80,              1,              1,                1      ,         1 };
 //nature bg
-image bg_images_green[] = { image(NULL, 160) };
-int bg_weightage_green[] = { 2 };
+image bg_images_nature[] = { image(NULL, 160) };
+int bg_weightage_nature[] = { 1 };
+//outer-space bgc
+image bgc_images_space[] = {image(NULL, 0), image('+', 15), image('*', 15)};
+int bgc_weightage_space[] = {80    ,              1  ,              1 };
+//outer-space bg
+image bg_images_space[] = { image(NULL, 0) };
+int bg_weightage_space[] = { 1 };
 
 //debugging things
 float debugtext; //will be rendered at mousepos
@@ -66,25 +73,26 @@ int idx[MAXENTITY]; //used for collision detection
 // Input    : void
 // Output   : void
 //--------------------------------------------------------------
-void init( void )
+void init(void)
 {
     //init variables
     srand(time(NULL));
-    mapchange(1);
+    
     virusspawntime = 1;
     mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 0));
-    
+    entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 11));
+    mapchange(1);
+
     //init maps
     renderWall(); //creating the border walls
     //background char map
-    bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
     //background colour only map
-    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
+    bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
     // Setting attributes of player
     g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
@@ -103,8 +111,7 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
-    entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
+    
 }
 
 //--------------------------------------------------------------
@@ -342,6 +349,7 @@ void update(double dt)
             }
         }
         updateGame(); // gameplay logic when we are in the game
+        updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
         updatePause();
@@ -366,9 +374,24 @@ void splashScreenWait()    // waits for time to pass in splash screen
     g_eGameState = S_GAME;
 }
 
-void updateGame()       // gameplay logic
+void updateGame(double dt)       // gameplay logic
 {
-    //debugging things
+    //timer related things
+    //increasing spawn timer for virus
+    //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
+    // get the delta time
+    g_dElapsedTime -= dt;
+    updatetimer += dt;
+
+    // increasing spd timer for entities
+    for (int i = 0; i < MAXENTITY; i++)
+    {
+        if (entities[i] != NULL)
+        {
+            entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
+        }
+    }
+
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
     //updating things based on delta time for entities
     if (updatetimer >= updatetime)
@@ -378,7 +401,7 @@ void updateGame()       // gameplay logic
         {
             if (entities[i] != NULL)
             {
-                entities[i]->update(g_map, bg_map, bgc_map, fg_map);
+                entities[i]->update(g_map, bg_map, bgc_map, fg_map, g_player);
             }
         }
     }
@@ -419,6 +442,7 @@ void updateGame()       // gameplay logic
         virusspawntime = rand() % 2;
         spawnvirus();
     }
+    g_map.centerOnPlayerSmooth(g_player->getpos(), dt);
 }
 
 void moveCharacter()
@@ -608,7 +632,7 @@ void renderMap()
     
     //rendering the maps
     COORD c;
-    g_map.centerOnPlayer(entities[0]->getpos());
+    //g_map.centerOnPlayer(entities[0]->getpos());
     int camposx = g_map.getcampos().get('x');
     int camsizex = g_map.getcamsize().get('x');
     int camposy = g_map.getcampos().get('y');
@@ -722,7 +746,7 @@ void renderInputEvents()
     //debugging
     ss.str("");
 
-    debugtext = g_player->gethp();
+    //debugtext = g_player->gethp();
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
     //debugtext = g_player->gethp();
@@ -900,13 +924,19 @@ void mapchange(int x)
     //background char map
     bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
     //background colour only map
-    bg_map.fill(bg_images_green, size(bg_images_green), bg_weightage_green);
+    bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
     if (maplevel <5)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
         g_dElapsedTime = 50.0; // susceptible to changes for level 1
+        
+        entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
+        
+        
+     
         for (int i = 0; i < 40; i++)
         {
             g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
@@ -1150,6 +1180,10 @@ void mapchange(int x)
     if (maplevel == 4)
     {
         g_dElapsedTime = 100.0; // susceptible to changes for level 4
+        for (int i = 0; i < 10; i++)
+        {
+            entities[i] = new virus_spawner(position(191, 31), 0.1f, g_map);
+        }
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
@@ -1437,17 +1471,6 @@ void mapchange(int x)
         entities[0]->setpos(position(100, 199), g_map);
     }
 }
-/*list of colours used:
-g_map
-240  -> walls (fg: NULL    bg: white    text: NULL)
-213  -> virus (fg: purple  bg: magenta  text: 15)
-  0  -> player(fg: light_green bg: NULL text: 1)
-0x0B -> mask  (fg: white   bg: NULL     text: 'M')
-  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
-
-bg_map
-reds -> fire  (fg: reds    bg: reds     text: -21)
-*/
 
 void renderOver() // render game over screen
 {
@@ -1663,3 +1686,14 @@ void updatePause() // unpause
     }
 }
 
+/*list of colours used:
+g_map
+240  -> walls (fg: NULL    bg: white    text: NULL)
+213  -> virus (fg: purple  bg: magenta  text: 15)
+  0  -> player(fg: light_green bg: NULL text: 1)
+0x0B -> mask  (fg: white   bg: NULL     text: 'M')
+  0  -> nothing(fg: NULL   bg: NULL     text: NULL)
+
+bg_map
+reds -> fire  (fg: reds    bg: reds     text: -21)
+*/

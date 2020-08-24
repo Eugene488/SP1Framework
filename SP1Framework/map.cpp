@@ -18,7 +18,7 @@ map::map(int size_x, int size_y):size_x(size_x), size_y(size_y) {
 	}
 }
 
-map::map(int size_x, int size_y, position camerapos, position camerasize) :size_x(size_x), size_y(size_y), camerapos(camerapos), camerasize(camerasize) {
+map::map(int size_x, int size_y, position camerapos, position camerasize) :size_x(size_x), size_y(size_y), camerapos(camerapos), camerasize(camerasize), truex(camerapos.get('x')), truey(camerapos.get('y')) {
 	mapvalues = new image * [size_x];
 	//malloc
 	for (int x = 0; x < size_x; x++)
@@ -36,10 +36,6 @@ map::map(int size_x, int size_y, position camerapos, position camerasize) :size_
 }
 
 map::~map() {
-	for (int x = 0; x < size_x; x++)
-	{
-		delete mapvalues[x];
-	}
 	delete mapvalues;
 }
 
@@ -75,6 +71,12 @@ int map::getmapsize(char xy) {
 //map
 void map::setmapposition(position pos, image i) {
 	mapvalues[pos.get('x')][pos.get('y')] = i;
+}
+void map::setmapposition(position start_pos, string& string, WORD colour) {
+	for (int i = 0; i < string.length(); i++)
+	{
+		mapvalues[start_pos.get('x') + i][start_pos.get('y')] = image(string[i], colour);
+	}
 }
 
 //other methods
@@ -115,4 +117,12 @@ void map::fill(image* images, int size, int* weightage) {
 //camera
 void map::centerOnPlayer(position playerpos) {
 	camerapos = position((playerpos.get('x') - ((camerasize.get('x')-1) / 2)), (playerpos.get('y') - ((camerasize.get('y')-1) / 2)));
+}
+void map::centerOnPlayerSmooth(position playerpos, double dt) {
+	position postomoveto = position((playerpos.get('x') - ((camerasize.get('x') - 1) / 2)), (playerpos.get('y') - ((camerasize.get('y') - 1) / 2)));
+	int gettox = postomoveto.get('x') - camerapos.get('x');
+	int gettoy = postomoveto.get('y') - camerapos.get('y');
+	truex += gettox *dt * 5;
+	truey += gettoy * dt * 3;
+	camerapos = position(truex, truey);
 }

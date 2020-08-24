@@ -86,9 +86,11 @@
     <ClCompile Include="image.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map.cpp" />
+    <ClCompile Include="NPC.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="position.cpp" />
     <ClCompile Include="Mask.cpp" />
+    <ClCompile Include="projectile.cpp" />
     <ClCompile Include="virus.cpp" />
     <ClCompile Include="virus_spawner.cpp" />
   </ItemGroup>
@@ -100,9 +102,11 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="NPC.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="Mask.h" />
+    <ClInclude Include="projectile.h" />
     <ClInclude Include="virus.h" />
     <ClInclude Include="virus_spawner.h" />
   </ItemGroup>

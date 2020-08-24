@@ -69,7 +69,7 @@ void entity::die(map& g_map, map& bg_map, map& bgc_map) {
 	delete this;
 }
 
-void entity::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map) {
+void entity::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* player) {
 	//do nothing
 }
 
