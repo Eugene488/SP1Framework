@@ -36,7 +36,7 @@ float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
-const int MAXENTITY = 50;
+const int MAXENTITY = 500;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
@@ -48,6 +48,9 @@ player* g_player;
 // Console object
 Console g_Console(80, 25, "Mask of Yendor");
 
+const int MAXTOOLS = 5;
+string tools[MAXTOOLS];
+int currenttool = 0;
 //background random generation
 //nature bgc
 image bgc_images_nature[] = { image(NULL, 2), image(-17, 2), image('*', 15), image('*', 12), image('*', 14), image('\\', 6) };
@@ -88,7 +91,6 @@ void init(void)
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
     mapchange(1);
-
     //init maps
     renderWall(); //creating the border walls
     //background char map
@@ -98,7 +100,12 @@ void init(void)
     // Setting attributes of player
     g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
-
+    for (int i = 0; i < MAXTOOLS; i++)
+    {
+        tools[i] = "none";
+    }
+    tools[0] = "fists";
+    tools[1] = "Water Gun";
     // Set precision for floating point output
     //g_dElapsedTime = 3600.0;    // Susceptible to change
 
@@ -117,7 +124,8 @@ void init(void)
     {
         if (entities[i] == NULL)
         {
-            //debug entities
+            entities[i] = new fire(position(190, 35), 1, 3, g_map, bg_map);
+            break;
         }
     }
 }
@@ -262,6 +270,15 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case 0x44: key = K_D; break;
         //others
     case 0x54: key = K_T; break;
+    case 0x45: key = K_E; break;
+    case 0x51: key = K_Q; break;
+        //numbers
+    case 0x30: key = K_0; break;
+    case 0x31: key = K_1; break;
+    case 0x32: key = K_2; break;
+    case 0x33: key = K_3; break;
+    case 0x34: key = K_4; break;
+    case 0x35: key = K_5; break;
     }
     // a key pressed event would be one with bKeyDown == true
     // a key released event would be one with bKeyDown == false
@@ -341,21 +358,6 @@ void update(double dt)
     case S_SPLASHSCREEN: splashScreenWait(); // game logic for the splash screen
         break;
     case S_GAME:
-        //increasing spawn timer for virus
-        //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
-            // get the delta time
-        g_dElapsedTime -= dt;
-
-        updatetimer += dt;
-
-        // increasing spd timer for entities
-        for (int i = 0; i < MAXENTITY; i++)
-        {
-            if (entities[i] != NULL)
-            {
-                entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
-            }
-        }
         updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
@@ -387,7 +389,7 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    g_dElapsedTime -= dt;
+    //g_dElapsedTime -= dt;
     updatetimer += dt;
     
     // increasing spd timer for entities
@@ -432,14 +434,14 @@ void updateGame(double dt)       // gameplay logic
                 }
             }
         }
-        //checking for deletion
-        for (int i = 1; i < MAXENTITY; i++) //player is not part of this
+    }
+    //checking for deletion
+    for (int i = 1; i < MAXENTITY; i++) //player is not part of this
+    {
+        if (entities[i] != NULL && entities[i]->gethp() <= 0)
         {
-            if (entities[i] != NULL && entities[i]->gethp() <= 0)
-            {
-                entities[i]->die(g_map, bg_map, bgc_map);
-                entities[i] = NULL;
-            }
+            entities[i]->die(g_map, bg_map, bgc_map);
+            entities[i] = NULL;
         }
     }
     //spawning viruses
@@ -531,7 +533,7 @@ void moveCharacter()
     if (g_skKeyEvent[K_SPACE].keyReleased)
     {
         entities[0]->setimage(image(entities[0]->getimage().gettext() + 1, entities[0]->getimage().getcolour()));
-        //debugtext = entities[0]->getimage().gettext();
+        debugtext = entities[0]->getimage().gettext();
         // resets all the keyboard events(add this to all buttons meant to be triggered from releasing and instead of being held down)
         g_skKeyEvent[K_SPACE].keyDown = 0;
         g_skKeyEvent[K_SPACE].keyReleased = 0;
@@ -543,17 +545,63 @@ void moveCharacter()
         g_skKeyEvent[K_T].keyDown = 0;
         g_skKeyEvent[K_T].keyReleased = 0;
     }
+    //changing tools
+    if (g_skKeyEvent[K_Q].keyReleased)
+    {
+        currenttool -= 1;
+        if (currenttool == -1)
+        {
+            currenttool = MAXTOOLS-1;
+        }
+        if (tools[currenttool] == "none")
+        {
+            currenttool += 1;
+        }
+        if (currenttool > MAXTOOLS-1)
+        {
+            currenttool = 0;
+        }
+        g_skKeyEvent[K_Q].keyReleased = 0;
+        g_skKeyEvent[K_Q].keyDown = 0;
+    }
+    if (g_skKeyEvent[K_E].keyReleased)
+    {
+        currenttool += 1;
+        if (currenttool > MAXTOOLS-1)
+        {
+            currenttool = 0;
+        }
+        if (tools[currenttool] == "none")
+        {
+            currenttool -= 1;
+        }
+        if (currenttool == -1)
+        {
+            currenttool = MAXTOOLS-1;
+        }
+        g_skKeyEvent[K_E].keyReleased = 0;
+        g_skKeyEvent[K_E].keyDown = 0;
+    }
+
+
+    //using current tool
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
-        if (g_player->getfireratetimer() >= g_player->getfirerate())
+        if (tools[currenttool] == "Water Gun")
         {
-            for (int i = 0; i < MAXENTITY; i++)
+            if (g_player->getfireratetimer() >= g_player->getfirerate())
             {
-                if (entities[i] == NULL)
+                g_player->setfireratetimer(0);
+                for (int i = 0; i < MAXENTITY; i++)
                 {
                     debugtext += 1;
                     //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
                     break;
+                    if (entities[i] == NULL)
+                    {
+                        entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
+                        break;
+                    }
                 }
             }
         }
@@ -600,7 +648,7 @@ void render()
     case S_WIN:renderWin();
         break;
     }
-    renderFramerate();      // renders debug information, frame rate, elapsed time, etc
+    renderFramerate();//also renders hud      // renders debug information, frame rate, elapsed time, etc
     renderInputEvents();    // renders status of input events
     renderToScreen();       // dump the contents of the buffer to the screen, one frame worth of game
 }
@@ -729,13 +777,25 @@ void renderFramerate()
     ss << g_dElapsedTime << "secs";
     c.X = 0;
     c.Y = 0;
-    g_Console.writeToBuffer(c, ss.str(), 0x59);
+    g_Console.writeToBuffer(c, ss.str(), 96);
 
+    //displays player hp
     ss.str("");
-    ss << g_player->gethp() << " lives";
+    ss << "lives: ";
+    for (int i = 0; i < g_player->gethp(); i++)
+    {
+        ss << char(3);
+    }
     c.X = 0;
     c.Y = 1;
-    g_Console.writeToBuffer(c, ss.str(), 0x59);
+    g_Console.writeToBuffer(c, ss.str(), 4 + 96);
+    //displays current tool
+    ss.str("");
+    ss << "current tool: ";
+    ss << tools[currenttool];
+    c.X = 0;
+    c.Y = 2;
+    g_Console.writeToBuffer(c, ss.str(), 96);
 }
 
 // this is an example of how you would use the input events

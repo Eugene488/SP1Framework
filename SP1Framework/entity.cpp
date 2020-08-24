@@ -98,6 +98,14 @@ string entity::triggerdetection(map& g_map, map& bg_map, map& bgc_map, position 
 			return "fire";
 		}
 	}
+	else if (map_to_check == "bg_map")
+	{
+		image bgimg = bg_map.getmapposition(position_to_check);
+		if (bgimg.getcolour() == static_cast<WORD>(144))
+		{
+			return "water";
+		}
+	}
 	return "none";
 }
 
