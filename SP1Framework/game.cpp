@@ -76,11 +76,11 @@ int idx[MAXENTITY]; //used for collision detection
 // Input    : void
 // Output   : void
 //--------------------------------------------------------------
-void init( void )
+void init(void)
 {
     //init variables
     srand(time(NULL));
-    mapchange(1);
+    
     virusspawntime = 1;
     mouse_tooltip_enabled = true;
     for (int i = 0; i < MAXENTITY; i++)
@@ -88,7 +88,8 @@ void init( void )
         entities[i] = NULL;
     }
     entities[0] = new player(position(190, 30), 3, 0.05f, image(1, 11));
-    
+    mapchange(1);
+
     //init maps
     renderWall(); //creating the border walls
     //background char map
@@ -113,9 +114,7 @@ void init( void )
     g_Console.setMouseHandler(mouseHandler);
 
     //debugging things
-    entities[1] = new fire(position(190, 40), 1, 3, bgc_map, bg_map);
-    entities[2] = new virus_spawner(position(191, 31), 0.1f, g_map);
-    entities[3] = new NPC(position(180, 32), 10, 0, image(2, 1), "my IQ is low`my deck’s really wack`i press button get +2 GOLDEN attack", "firebald", g_map);
+    
 }
 
 //--------------------------------------------------------------
@@ -908,6 +907,12 @@ void mapchange(int x)
 
     if (maplevel == 1)
     {
+        
+        entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
+        
+        
+        
         for (int i = 0; i < 40; i++)
         {
             g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
@@ -1149,6 +1154,10 @@ void mapchange(int x)
     }
     if (maplevel == 4)
     {
+        for (int i = 0; i < 10; i++)
+        {
+            entities[i] = new virus_spawner(position(191, 31), 0.1f, g_map);
+        }
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
