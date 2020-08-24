@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 5;
+int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -41,12 +41,6 @@ float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
-
-
-const int MAXENTITY = 200;
-
-
-
 float lightningtimer = 0;
 const int MAXENTITY = 500;
 
@@ -520,16 +514,10 @@ void moveCharacter()
     WORD g_mapcolour1 = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
     if (g_mapcolour1 == static_cast<WORD>(0x0D)) //TP
     {
-       
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
         maskrenderout();
-        
-        
     }
-   
-    
-    
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(&idx[0], futurloc, g_map);
@@ -631,8 +619,6 @@ void moveCharacter()
         g_skKeyEvent[K_E].keyReleased = 0;
         g_skKeyEvent[K_E].keyDown = 0;
     }
-
-
     //using current tool
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
@@ -643,19 +629,10 @@ void moveCharacter()
                 g_player->setfireratetimer(0);
                 for (int i = 0; i < MAXENTITY; i++)
                 {
-
-
-                    
-
-                    debugtext += 1;
-                    //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
-                    break;
-
-
                     if (entities[i] == NULL)
                     {
-                        //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
-                        //break;
+                        entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
+                        break;
                     }
 
                 }
@@ -1836,8 +1813,8 @@ void mapchange(int x)
     {
         g_dElapsedTime = 999;
         g_player->setpos(position(39, 18), g_map);
-        bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
-        bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
+        bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
+        bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
         for (int i = 0; i < 25; i++)
         {
             g_map.setmapposition(position(79, i), image(NULL, 240));
@@ -1908,7 +1885,7 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
     }
     else if (maplevel == 5)
     {
-        ss << "Level " << maplevel << ": ???";
+        ss << "L3^el " << maplevel << "= ???";
         c.Y /= 3;
         c.X = (c.X - ss.tellp()) / 2;
         g_Console.writeToBuffer(c, ss.str(), 0x03);
