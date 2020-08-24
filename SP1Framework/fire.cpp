@@ -70,7 +70,7 @@ void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 			}
 			else if (bgc_map.getmapposition(futurloc).gettext() != -21)
 			{
-				statechange = rand() % 3 - 1;
+				statechange = rand() % 2 - 1;
 				int hpc = hp + statechange;
 				if (hpc > 3)
 				{

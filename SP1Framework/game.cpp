@@ -18,6 +18,8 @@
 #include "NPC.h"
 #include "projectile.h"
 #include "boulder.h"
+#include "lightning.h"
+#include "boss.h"
 
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 double  g_dElapsedTime;
@@ -37,6 +39,7 @@ float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
+float lightningtimer = 0;
 const int MAXENTITY = 500;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
@@ -127,6 +130,7 @@ void init(void)
         if (entities[i] == NULL)
         {
             entities[i] = new boulder(position(190, 35), 1, g_map);
+            entities[i + 1] = new boss(position(190, 34), 1, g_map);
             break;
         }
     }
@@ -393,7 +397,10 @@ void updateGame(double dt)       // gameplay logic
     // get the delta time
     //g_dElapsedTime -= dt;
     updatetimer += dt;
-    
+    if (lightningtimer < 1)
+    {
+        lightningtimer += dt;
+    }
     // increasing timers for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
