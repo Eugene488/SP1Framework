@@ -20,7 +20,7 @@ void lightning::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int l
     {
         if (entities[i] == NULL)
         {
-            entities[i] = new fire(pos, 5, 3, g_map, bg_map);
+            entities[i] = new fire(pos, 3, 3, bgc_map, bg_map);
             break;
         }
     }

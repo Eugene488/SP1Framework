@@ -62,7 +62,7 @@ void virus::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int lists
 	case 8:
 		futurloc.set('x', futurloc.get('x') - 1); futurloc.set('y', futurloc.get('y') - 1); break;
 	}
-	if (collisiondetection(solids, listsize, futurloc, g_map))
+	if (collisiondetection(solids, listsize, futurloc, g_map) && g_map.getmapposition(futurloc).getcolour() != static_cast<WORD>(5+208))
 	{
 		prevloc = getpos();
 		g_map.setmapposition(prevloc, previmg);

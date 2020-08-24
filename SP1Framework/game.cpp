@@ -73,7 +73,9 @@ int bgc_weightage_space[] = {80    ,              1  ,              1 };
 //outer-space bg
 image bg_images_space[] = { image(NULL, 0) };
 int bg_weightage_space[] = { 1 };
-
+//white bg
+image bg_images_white[] = { image(NULL, 240) };
+int bg_weightage_white[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -397,7 +399,7 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    //g_dElapsedTime -= dt;
+    g_dElapsedTime -= dt;
     updatetimer += dt;
     if (lightningtimer < 1)
     {
@@ -418,6 +420,7 @@ void updateGame(double dt)       // gameplay logic
     //updating things based on delta time for entities
     if (updatetimer >= updatetime)
     {
+       
         updatetimer = 0;
         for (int i = 0; i < MAXENTITY; i++)
         {
@@ -816,19 +819,19 @@ void renderFramerate()
     // displays the elapsed time
     ss.str("");
     ss << g_dElapsedTime << "secs";
-    c.X = 0;
+    c.X = (g_Console.getConsoleSize().X - ss.tellp())/2;
     c.Y = 0;
     g_Console.writeToBuffer(c, ss.str(), 96);
 
     //displays player hp
     ss.str("");
-    ss << "lives: ";
+    ss << "lives:";
     for (int i = 0; i < g_player->gethp(); i++)
     {
-        ss << char(3);
+        ss << " " << char(3);
     }
     c.X = 0;
-    c.Y = 1;
+    c.Y = 0;
 
     g_Console.writeToBuffer(c, ss.str(), 0x60);
 
@@ -840,7 +843,7 @@ void renderFramerate()
     ss << "current tool: ";
     ss << tools[currenttool];
     c.X = 0;
-    c.Y = 2;
+    c.Y = g_Console.getConsoleSize().Y;
     g_Console.writeToBuffer(c, ss.str(), 96);
 
 }
@@ -1037,18 +1040,11 @@ void renderWall()
         WORD charColor = 240; //bg white
         g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
         g_map.setmapposition(position(i, 0), image(' ', charColor));//top wall border
-
-        
-
-        
-
         for (int i = 0; i < g_map.getmapsize('y'); i++)
         {
             g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
             g_map.setmapposition(position(g_map.getmapsize('x') - 1, i), image(' ', charColor)); //right wall border
         }
-
-        
     }
 }
 
@@ -2061,6 +2057,47 @@ void updatePause() // unpause
     {
         g_eGameState = S_GAME;
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+}
+
+void backgroundchange(string bg, string bgc, string fg) {
+    if (bg == "nature")
+    {
+        bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
+    }
+    else if (bg == "space")
+    {
+        bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
+    }
+    else if (bg == "white")
+    {
+        bg_map.fill(bg_images_white, size(bg_images_white), bg_weightage_white);
+    }
+    else if (bg == "clear")
+    {
+        bg_map.clearmap();
+    }
+
+    if (bgc == "nature")
+    {
+        bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    }
+    else if (bgc == "space")
+    {
+        bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
+    }
+    else if (bgc == "clear")
+    {
+        bgc_map.clearmap();
+    }
+
+    if (fg == "white")
+    {
+        fg_map.fill(bg_images_white, size(bg_images_white), bg_weightage_white);
+    }
+    else if (fg == "clear")
+    {
+        fg_map.clearmap();
     }
 }
 
