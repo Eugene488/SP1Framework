@@ -19,8 +19,10 @@
 #include "projectile.h"
 
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
+bool toiletpaperbuff = false;
 double  g_dElapsedTime;
 double  g_dDeltaTime;
+double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
 int maplevel = 1;
@@ -36,7 +38,7 @@ float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
-const int MAXENTITY = 50;
+const int MAXENTITY = 200;
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
 WORD solids[] = {240, 2+80}; //list of solid objects that will stop movement, add the colour here
@@ -389,7 +391,8 @@ void updateGame(double dt)       // gameplay logic
     // get the delta time
     g_dElapsedTime -= dt;
     updatetimer += dt;
-    
+    g_dbufftime += dt;
+
     // increasing spd timer for entities
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -490,6 +493,16 @@ void moveCharacter()
         mapchange(maplevel);
         futurloc = entities[0]->getpos();
     }
+
+    WORD g_mapcolour1 = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
+    if (g_mapcolour1 == static_cast<WORD>(0x0D)) //TP
+    {
+        
+        toiletpaperbuff = true;
+        g_dbufftime = 0.0;
+        
+        
+    }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(&idx[0], futurloc, g_map);
@@ -504,7 +517,18 @@ void moveCharacter()
                 else
                 {
                     entities[idx[i]]->sethp(0);
-                    g_player->takedmg(1);
+                    if (toiletpaperbuff == true && g_dbufftime < 5.0)
+                    {
+                        WORD charColor = 0x00;
+                        g_map.setmapposition(position(152, 15), image('T', charColor));
+                        g_player->takedmg(0);
+                    }
+                    
+                    else
+                    {
+                        g_player->takedmg(1);
+                    }
+
                     if (g_player->gethp() < 1)
                     {
                         g_eGameState = S_OVER;
@@ -551,9 +575,7 @@ void moveCharacter()
             {
                 if (entities[i] == NULL)
                 {
-                    debugtext += 1;
-                    entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
-                    break;
+                    
                 }
             }
         }
@@ -635,6 +657,7 @@ void renderGame()
 {
     renderMap();        // renders the map to the buffer first
     renderMask();
+    renderTP();
 }
 
 void renderMap()
@@ -735,7 +758,9 @@ void renderFramerate()
     ss << g_player->gethp() << " lives";
     c.X = 0;
     c.Y = 1;
-    g_Console.writeToBuffer(c, ss.str(), 0x59);
+    g_Console.writeToBuffer(c, ss.str(), 0x60);
+
+    
 }
 
 // this is an example of how you would use the input events
@@ -917,6 +942,15 @@ void renderMask()
     }
 }
 
+void renderTP()
+{
+    if (maplevel == 1)
+    {
+        WORD charColor = 0x0D;
+        g_map.setmapposition(position(152, 15), image('T', charColor));
+    }
+}
+
 //render border walls
 void renderWall()
 {
@@ -943,7 +977,7 @@ void renderWall()
 void maskrenderout()
 {
     WORD charColor = 0x00;
-    g_map.setmapposition(position(10, 10), image('M', charColor));
+    g_map.setmapposition(position(152, 15), image('T', charColor));
 }
 
 void mapchange(int x)
@@ -961,10 +995,10 @@ void mapchange(int x)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
-        g_dElapsedTime = 30.0; // susceptible to changes for level 1
+        g_dElapsedTime = 300.0; // susceptible to changes for level 1
         
-        entities[1] = new virus_spawner(position(136, 11), 0.1f, g_map);
-        entities[2] = new virus_spawner(position(107, 35), 0.1f, g_map);
+        
+        entities[1] = new virus_spawner(position(107, 35), 0.1f, g_map);
         
         
      
@@ -1210,7 +1244,16 @@ void mapchange(int x)
     }
     if (maplevel == 4)
     {
-        g_dElapsedTime = 100.0; // susceptible to changes for level 4
+        entities[1] = new virus_spawner(position(75, 145), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(122, 105), 0.1f, g_map);
+        entities[3] = new virus_spawner(position(78, 137), 0.1f, g_map);
+        entities[4] = new virus_spawner(position(62, 152), 0.1f, g_map);
+        entities[5] = new virus_spawner(position(64, 98), 0.1f, g_map);
+        entities[6] = new virus_spawner(position(63, 75), 0.1f, g_map);
+        entities[7] = new virus_spawner(position(63, 75), 0.1f, g_map);
+        entities[8] = new virus_spawner(position(150, 108), 0.1f, g_map);
+        entities[9] = new virus_spawner(position(83, 141), 0.1f, g_map);
+        g_dElapsedTime = 1000.0; // susceptible to changes for level 4
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
