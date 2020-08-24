@@ -9,7 +9,7 @@ virus_spawner::~virus_spawner() {
 
 //other methods
 void virus_spawner::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
-	spd = rand() % 1 + 1;
+	spd = rand() % 1 + 0;
 	if (virus::gettotal() < virus::getmax())
 	{
 		int dir = rand() % 8 + 1;
