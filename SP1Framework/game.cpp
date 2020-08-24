@@ -348,7 +348,6 @@ void update(double dt)
                 entities[i]->setspdtimer(entities[i]->getspdtimer() + dt);
             }
         }
-        updateGame(); // gameplay logic when we are in the game
         updateGame(dt); // gameplay logic when we are in the game
         break;
     case S_PAUSE:
@@ -926,11 +925,11 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-    if (maplevel <5)
+    if (maplevel < 5)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
-        g_dElapsedTime = 50.0; // susceptible to changes for level 1
+        g_dElapsedTime = 30.0; // susceptible to changes for level 1
         
         entities[1] = new virus_spawner(position(191, 31), 0.1f, g_map);
         entities[2] = new virus_spawner(position(131, 32), 0.1f, g_map);
@@ -1180,10 +1179,6 @@ void mapchange(int x)
     if (maplevel == 4)
     {
         g_dElapsedTime = 100.0; // susceptible to changes for level 4
-        for (int i = 0; i < 10; i++)
-        {
-            entities[i] = new virus_spawner(position(191, 31), 0.1f, g_map);
-        }
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
