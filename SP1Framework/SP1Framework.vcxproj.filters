@@ -17,6 +17,8 @@
     <ClCompile Include="NPC.cpp" />
     <ClCompile Include="projectile.cpp" />
     <ClCompile Include="boulder.cpp" />
+    <ClCompile Include="boss.cpp" />
+    <ClCompile Include="lightning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Framework\console.h">
@@ -62,6 +64,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="boulder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="boss.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lightning.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
