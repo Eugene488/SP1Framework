@@ -100,3 +100,7 @@ string entity::triggerdetection(map& g_map, map& bg_map, map& bgc_map, position 
 	}
 	return "none";
 }
+
+void entity::updatetimers(float dt) {
+	spdtimer += dt;
+}

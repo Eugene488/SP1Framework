@@ -7,6 +7,8 @@ class player :public entity
 private:
 	float invulntime;
 	float invulntimer;
+	float firerate = 1;
+	float fireratetimer;
 public:
 	player();
 	~player();
@@ -15,11 +17,16 @@ public:
 	//getters
 	float getItime();
 	float getItimer();
+	float getfireratetimer();
+	float getfirerate();
 	//setters
 	void setItime(float time);
 	void setItimer(float timer);
+	void setfireratetimer(float time);
+	void setfirerate(float time);
 	//other methods
 	void move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY);
 	void takedmg(int dmg);
+	void updatetimers(float dt);
 };
 

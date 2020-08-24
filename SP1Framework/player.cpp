@@ -13,6 +13,12 @@ float player::getItime() {
 float player::getItimer() {
 	return invulntimer;
 }
+float player::getfireratetimer() {
+	return fireratetimer;
+}
+float player::getfirerate() {
+	return firerate;
+}
 
 //setters
 void player::setItime(float time) {
@@ -21,15 +27,31 @@ void player::setItime(float time) {
 void player::setItimer(float timer) {
 	invulntimer = timer;
 }
-
+void player::setfireratetimer(float time) {
+	fireratetimer += time;
+}
+void player::setfirerate(float time) {
+	firerate += time;
+}
 //other methods
 void player::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
 	//TODO
 }
 void player::takedmg(int dmg) {
-	if (invulntimer >= 0.5f)
+	if (invulntimer >= invulntime)
 	{
 		hp -= dmg;
 		invulntimer = 0;
+	}
+}
+void player::updatetimers(float dt) {
+	spdtimer += dt;
+	if (invulntimer < invulntime)
+	{
+		invulntimer += dt;
+	}
+	if (fireratetimer < firerate)
+	{
+		fireratetimer += dt;
 	}
 }
