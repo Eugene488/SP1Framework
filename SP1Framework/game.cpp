@@ -601,9 +601,6 @@ void moveCharacter()
                 g_player->setfireratetimer(0);
                 for (int i = 0; i < MAXENTITY; i++)
                 {
-                    debugtext += 1;
-                    //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
-                    break;
                     if (entities[i] == NULL)
                     {
                         entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
