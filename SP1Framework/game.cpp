@@ -1077,6 +1077,7 @@ void mapchange(int x)
         
         
         entities[1] = new virus_spawner(position(107, 35), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
         
         
      
@@ -1305,6 +1306,12 @@ void mapchange(int x)
     {
         g_dElapsedTime = 75.0; // susceptible to changes for level 2
 
+        entities[1] = new virus_spawner(position(151, 25), 0.1f, g_map);
+        entities[2] = new virus_spawner(position(51, 25), 0.1f, g_map);
+        entities[3] = new virus_spawner(position(81, 50), 0.1f, g_map);
+        entities[4] = new virus_spawner(position(52, 75), 0.1f, g_map);
+        entities[5] = new virus_spawner(position(151, 75), 0.1f, g_map);
+
         for (int i = 0; i < 11; i++) //Map 2's Skeleton
         {
             g_map.setmapposition(position(71, i), image(' ', charColor));
@@ -1497,7 +1504,8 @@ void mapchange(int x)
             g_map.setmapposition(position(101 + i, 54), image(' ', charColor));
         }
         entities[0]->setpos(position(126, 44), g_map);
-        
+        WORD charColor = 0x0D;
+        g_map.setmapposition(position(43, 75), image('T', charColor));
 
     }
     if (maplevel == 3)
@@ -1804,6 +1812,14 @@ void mapchange(int x)
             g_map.setmapposition(position(101 + i, 84 ), image(' ', charColor));
             g_map.setmapposition(position(101 + i, 93), image(' ', charColor));
         }
+        g_map.setmapposition(position(108, 82), image(' ', charColor));
+        g_map.setmapposition(position(101, 130), image(' ', charColor));
+        g_map.setmapposition(position(107, 128), image(' ', charColor));
+        g_map.setmapposition(position(174, 119), image(' ', charColor));
+        g_map.setmapposition(position(53, 80), image(' ', charColor));
+        g_map.setmapposition(position(56, 83), image(' ', charColor));
+        g_map.setmapposition(position(23, 96), image(' ', charColor));
+        g_map.setmapposition(position(17, 109), image(' ', charColor));
         WORD charColor = 0x0D;
         g_map.setmapposition(position(85, 87), image('T', charColor));
 
