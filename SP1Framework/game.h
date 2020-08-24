@@ -37,10 +37,10 @@ enum EKEYS
     K_LEFT,
     K_RIGHT,
     K_ESCAPE,
+    K_ENTER,
     K_SPACE,
     K_T,
-    K_COUNT,
-    K_ENTER
+    K_COUNT
 };
 
 // Enumeration for the different screen states
@@ -53,7 +53,11 @@ enum EGAMESTATES
     S_RESTART,
     S_MAIN,
     S_OVER,
-    S_TUTORIAL
+    S_TUTORIAL,
+    S_MAPT,
+    S_WIN
+
+
 };
 
 // struct for the game character
@@ -80,27 +84,36 @@ void renderMap();           // renders the map to the buffer first
 void renderFramerate();     // renders debug information, frame rate, elapsed time, etc
 void renderToScreen();      // dump the contents of the buffer to the screen, one frame worth of game
 void renderInputEvents();   // renders the status of input events
+void mapchange(int x); // changes map
+
 
 void renderWall();
 void maskrenderout();
-void mapchange(int x);
 void updatePause(); // check user input
 void renderMask(); // spawns mask
 void renderPause(); // displays pause menu
 void Restart(); // restarts game
 void mainMenu(); // main menu
 void rendertutorialscreen(); // tutorial screen
-void renderOver();
-
-void renderMask();
+void renderWall();
+void maskrenderout();
+void renderTrans(); // map transition screen
+void renderWin(); // win screen
+void renderMask(); // spawn mask
+void renderOver(); // render Game Over
 // keyboard and mouse input event managers
 void keyboardHandler(const KEY_EVENT_RECORD& keyboardEvent);  // define this function for the console to call when there are keyboard events
 void mouseHandler(const MOUSE_EVENT_RECORD& mouseEvent);      // define this function for the console to call when there are mouse events
-void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
 void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent);   // handles keyboard events for gameplay 
 void gameplayMouseHandler(const MOUSE_EVENT_RECORD& mouseEvent); // handles mouse events for gameplay 
 
+
+
+void pausekeyboardHandler(const KEY_EVENT_RECORD& keyboardEvent); // handles mouse events for pause menu
 void spawnvirus();
-void getentityfrompos(int* pointer_to_change, position pos, map& g_map);
-void clearentities();
+void getentityfrompos(int* ptr, position pos, map& g_map);
+
+void spawnvirus();
+
+
 #endif // _GAME_H
