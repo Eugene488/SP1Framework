@@ -64,7 +64,11 @@ void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 		}
 		if (collisiondetection(solids, listsize, futurloc, g_map))
 		{
-			if (bgc_map.getmapposition(futurloc).gettext() != -21)
+			if (triggerdetection(g_map, bg_map, bgc_map, futurloc, "bg_map") == "water")
+			{
+				//do nothing
+			}
+			else if (bgc_map.getmapposition(futurloc).gettext() != -21)
 			{
 				statechange = rand() % 3 - 1;
 				int hpc = hp + statechange;
@@ -100,4 +104,11 @@ void fire::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 void fire::die(map& g_map, map& bg_map, map& bgc_map) {
 	bgc_map.setmapposition(pos, image(NULL, 0));
 	bg_map.setmapposition(pos, image(NULL, 96));
+}
+
+void fire::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* player) {
+	if (triggerdetection(g_map, bg_map, bgc_map, pos, "bg_map") == "water")
+	{
+		hp = 0;
+	}
 }
