@@ -1,6 +1,6 @@
 #include "virus_spawner.h"
 
-virus_spawner::virus_spawner(position position, float spd, map& g_map): entity(position, image('V', 2 + 80), 0, 1, "virus spawner"){
+virus_spawner::virus_spawner(position position, float spd, map& g_map): entity(position, image('V', 2 + 80), spd, 1, "virus spawner"){
 	setpos(pos, g_map);
 }
 virus_spawner::~virus_spawner() {

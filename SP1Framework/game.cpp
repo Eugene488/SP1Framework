@@ -41,12 +41,6 @@ float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
-
-
-
-
-
-
 float lightningtimer = 0;
 const int MAXENTITY = 500;
 
@@ -79,7 +73,9 @@ int bgc_weightage_space[] = {80    ,              1  ,              1 };
 //outer-space bg
 image bg_images_space[] = { image(NULL, 0) };
 int bg_weightage_space[] = { 1 };
-
+//white bg
+image bg_images_white[] = { image(NULL, 240) };
+int bg_weightage_white[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -105,7 +101,8 @@ void init(void)
         entities[i] = NULL;
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
-    mapchange(1);
+    g_player = static_cast<player*>(entities[0]);
+    mapchange(5);
     //init maps
     renderWall(); //creating the border walls
     //background char map
@@ -113,7 +110,6 @@ void init(void)
     //background colour only map
     bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
     // Setting attributes of player
-    g_player = static_cast<player*>(entities[0]);
     previmg = image(NULL, 0);
     for (int i = 0; i < MAXTOOLS; i++)
     {
@@ -139,8 +135,6 @@ void init(void)
     {
         if (entities[i] == NULL)
         {
-            entities[i] = new boulder(position(190, 35), 1, g_map);
-            entities[i + 1] = new boss(position(190, 34), 1, g_map);
             break;
         }
     }
@@ -405,7 +399,7 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    //g_dElapsedTime -= dt;
+    g_dElapsedTime -= dt;
     updatetimer += dt;
     if (lightningtimer < 1)
     {
@@ -426,6 +420,7 @@ void updateGame(double dt)       // gameplay logic
     //updating things based on delta time for entities
     if (updatetimer >= updatetime)
     {
+       
         updatetimer = 0;
         for (int i = 0; i < MAXENTITY; i++)
         {
@@ -522,16 +517,10 @@ void moveCharacter()
     WORD g_mapcolour1 = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
     if (g_mapcolour1 == static_cast<WORD>(0x0D)) //TP
     {
-       
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
         maskrenderout();
-        
-        
     }
-   
-    
-    
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(&idx[0], futurloc, g_map);
@@ -633,8 +622,6 @@ void moveCharacter()
         g_skKeyEvent[K_E].keyReleased = 0;
         g_skKeyEvent[K_E].keyDown = 0;
     }
-
-
     //using current tool
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
@@ -645,19 +632,10 @@ void moveCharacter()
                 g_player->setfireratetimer(0);
                 for (int i = 0; i < MAXENTITY; i++)
                 {
-
-
-                    
-
-                    debugtext += 1;
-                    //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(2,11), 0.1f, "bullet", g_map, "virus", 1);
-                    break;
-
-
                     if (entities[i] == NULL)
                     {
-                        //entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
-                        //break;
+                        entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
+                        break;
                     }
 
                 }
@@ -764,7 +742,14 @@ void renderMap()
     
     //rendering the maps
     COORD c;
-    g_map.centerOnPlayer(entities[0]->getpos());
+    if (maplevel != 5)
+    {
+        g_map.centerOnPlayer(entities[0]->getpos());
+    }
+    else
+    {
+        g_map.centerOnPlayer(position(39, 12));
+    }
     int camposx = g_map.getcampos().get('x');
     int camsizex = g_map.getcamsize().get('x');
     int camposy = g_map.getcampos().get('y');
@@ -834,19 +819,19 @@ void renderFramerate()
     // displays the elapsed time
     ss.str("");
     ss << g_dElapsedTime << "secs";
-    c.X = 0;
+    c.X = (g_Console.getConsoleSize().X - ss.tellp())/2;
     c.Y = 0;
     g_Console.writeToBuffer(c, ss.str(), 96);
 
     //displays player hp
     ss.str("");
-    ss << "lives: ";
+    ss << "lives:";
     for (int i = 0; i < g_player->gethp(); i++)
     {
-        ss << char(3);
+        ss << " " << char(3);
     }
     c.X = 0;
-    c.Y = 1;
+    c.Y = 0;
 
     g_Console.writeToBuffer(c, ss.str(), 0x60);
 
@@ -858,7 +843,7 @@ void renderFramerate()
     ss << "current tool: ";
     ss << tools[currenttool];
     c.X = 0;
-    c.Y = 2;
+    c.Y = g_Console.getConsoleSize().Y;
     g_Console.writeToBuffer(c, ss.str(), 96);
 
 }
@@ -1036,7 +1021,7 @@ void renderMask()
         g_map.setmapposition(position(79, 72), image('M', charColor));
 
     }
-    else if (maplevel == 5)
+    else if (maplevel == 6)
     {
         g_eGameState = S_WIN;
     }
@@ -1055,18 +1040,11 @@ void renderWall()
         WORD charColor = 240; //bg white
         g_map.setmapposition(position(i, g_map.getmapsize('y')), image(' ', charColor)); //bottom wall border
         g_map.setmapposition(position(i, 0), image(' ', charColor));//top wall border
-
-        
-
-        
-
         for (int i = 0; i < g_map.getmapsize('y'); i++)
         {
             g_map.setmapposition(position(0, i), image(' ', charColor)); //left wall border
             g_map.setmapposition(position(g_map.getmapsize('x') - 1, i), image(' ', charColor)); //right wall border
         }
-
-        
     }
 }
 
@@ -1087,7 +1065,8 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-    if (maplevel < 5)
+    if (maplevel < 6)
+
         g_eGameState = S_MAPT;
     if (maplevel == 1)
     {
@@ -2216,6 +2195,22 @@ void mapchange(int x)
 
         entities[0]->setpos(position(100, 199), g_map);
     }
+    if (maplevel == 5)
+    {
+        g_dElapsedTime = 999;
+        g_player->setpos(position(39, 18), g_map);
+        bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
+        bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
+        for (int i = 0; i < 25; i++)
+        {
+            g_map.setmapposition(position(79, i), image(NULL, 240));
+        }
+        for (int i = 0; i < 79; i++)
+        {
+            g_map.setmapposition(position(i, 24), image(NULL, 240));
+        }
+        entities[1] = new boss(position(39, 3), 1, g_map);
+    }
 }
 
 void renderOver() // render game over screen
@@ -2274,6 +2269,13 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
         c.X = c.X / 2 - ss.tellp() + 9;
         g_Console.writeToBuffer(c, ss.str(), 0x03);
     }
+    else if (maplevel == 5)
+    {
+        ss << "L3^el " << maplevel << "= ???";
+        c.Y /= 3;
+        c.X = (c.X - ss.tellp()) / 2;
+        g_Console.writeToBuffer(c, ss.str(), 0x03);
+    }
 
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
@@ -2283,7 +2285,7 @@ void renderTrans() // render map transition screen (level 1 .. level 2 ..)
     ss.str("");
     ss << "Click to continue";
     c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 10;
+    c.X = (g_Console.getConsoleSize().X - ss.tellp() )/ 2;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
 }
 
@@ -2429,6 +2431,47 @@ void updatePause() // unpause
     {
         g_eGameState = S_GAME;
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
+    }
+}
+
+void backgroundchange(string bg, string bgc, string fg) {
+    if (bg == "nature")
+    {
+        bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
+    }
+    else if (bg == "space")
+    {
+        bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
+    }
+    else if (bg == "white")
+    {
+        bg_map.fill(bg_images_white, size(bg_images_white), bg_weightage_white);
+    }
+    else if (bg == "clear")
+    {
+        bg_map.clearmap();
+    }
+
+    if (bgc == "nature")
+    {
+        bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
+    }
+    else if (bgc == "space")
+    {
+        bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
+    }
+    else if (bgc == "clear")
+    {
+        bgc_map.clearmap();
+    }
+
+    if (fg == "white")
+    {
+        fg_map.fill(bg_images_white, size(bg_images_white), bg_weightage_white);
+    }
+    else if (fg == "clear")
+    {
+        fg_map.clearmap();
     }
 }
 
