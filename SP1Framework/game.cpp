@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 4;
+int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -37,12 +37,14 @@ map g_map = map(MAPSIZEX, MAPSIZEY, position(0,0), position(80, 25));
 map bg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background only
 map bgc_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //background characters
 map fg_map = map(MAPSIZEX, MAPSIZEY, position(0, 0), position(80, 25)); //foreground map
+image wallskin = image(NULL, 16); //image/skin of the walls
 float virusspawntime;
 float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
 float lightningtimer = 0;
 const int MAXENTITY = 500;
+image nonbuffplayerskin = image(1, 0);
 
 
 entity* entities[MAXENTITY]; //stores all entities that move
@@ -76,6 +78,15 @@ int bg_weightage_space[] = { 1 };
 //white bg
 image bg_images_white[] = { image(NULL, 240) };
 int bg_weightage_white[] = { 1 };
+//yellow bg
+image bg_images_yellow[] = { image(NULL, 224) };
+int bg_weightage_yellow[] = { 1 };
+//black bg
+image bg_images_black[] = { image(NULL, 0) };
+int bg_weightage_black[] = { 1 };
+//brown bg
+image bg_images_brown[] = { image(NULL, 96) };
+int bg_weightage_brown[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -100,7 +111,7 @@ void init(void)
     {
         entities[i] = NULL;
     }
-    entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
+    entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 0));
     g_player = static_cast<player*>(entities[0]);
     mapchange(maplevel);
     //init maps
@@ -407,6 +418,7 @@ void updateGame(double dt)       // gameplay logic
     }
     if (g_dbufftime >= 5.0)
     {
+        g_player->setimage(nonbuffplayerskin);
         toiletpaperbuff = false;
     }
     // increasing timers for entities
@@ -520,6 +532,7 @@ void moveCharacter()
     {
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
+        g_player->setimage(image(1, 14 + 128));
         maskrenderout();
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
@@ -649,6 +662,7 @@ void moveCharacter()
                     static_cast<NPC*>(entities[idx[i]])->toggletext();
                 }
             }
+            g_mouseEvent.buttonState = 0;
         }
         if (tools[currenttool] == "Water Gun")
         {
@@ -790,7 +804,9 @@ void renderMap()
                 c.X = x0;
                 c.Y = y0;
                 bg_image_colour = bg_map.getmapposition(position(x, y)).getcolour();
-                //rendering g_map
+                
+                
+                //rendering fg_map
                 if (fg_map.getmapposition(position(x, y)).gettext() != NULL || fg_map.getmapposition(position(x, y)).getcolour() != 0)
                 {
                     g_Console.writeToBuffer(c, fg_map.getmapposition(position(x, y)).gettext(), fg_map.getmapposition(position(x, y)).getcolour());
@@ -799,8 +815,14 @@ void renderMap()
                 {
                     if (g_map.getmapposition(position(x, y)).gettext() != NULL || g_map.getmapposition(position(x, y)).getcolour() != 0)
                     {
+                        //rendering wallskin map
                         g_image_colour = g_map.getmapposition(position(x, y)).getcolour();
-                        if (g_image_colour > 15)
+                        if (g_image_colour == 240)
+                        {
+                            g_Console.writeToBuffer(c, wallskin.gettext(), wallskin.getcolour());
+                        }
+                        //rendering g_map
+                        else if (g_image_colour > 15)
                         {
                             g_Console.writeToBuffer(c, g_map.getmapposition(position(x, y)).gettext(), g_image_colour);
                         }
@@ -917,7 +939,7 @@ void renderInputEvents()
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
     debugtext = g_player->gethp();
-    ss << "debug text: " << debugtext;
+    //ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
 
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
@@ -1093,18 +1115,22 @@ void mapchange(int x)
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
     WORD charColor = 240;
-    if (maplevel < 6)
-
+    nonbuffplayerskin = image(1, 0);
+    g_player->setimage(nonbuffplayerskin);
+    if (maplevel < 6) {
         g_eGameState = S_MAPT;
+    }
     if (maplevel == 1)
     {
         g_dElapsedTime = 300.0; // susceptible to changes for level 1
-        
-        
+        nonbuffplayerskin = image(1, 3);
+        g_player->setimage(nonbuffplayerskin);
+        wallskin = image(NULL,240);
+        backgroundchange("space", "space", "clear");
         entities[1] = new virus_spawner(position(107, 35), 0.1f, g_map);
         entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
         entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS for 4.9+ seconds(no refunds)", "TP Man", g_map);
-        entities[4] = new NPC(position(190, 35), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`fulfil your destiny and retrieve the 4 Masks of Yendor and save the world`I will send you to as close to the masks as I can", "Worshipper", g_map);
+        entities[4] = new NPC(position(165, 43), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`Retrieve the 4 Masks of Yendor and save the world`I will guide you along the journey", "Worshipper", g_map);
      
         for (int i = 0; i < 40; i++)
         {
@@ -1329,7 +1355,8 @@ void mapchange(int x)
     else if (maplevel == 2)
     {
         g_dElapsedTime = 75.0; // susceptible to changes for level 2
-
+        wallskin = image(NULL, 80);
+        backgroundchange("yellow", "clear", "clear");
         entities[1] = new virus_spawner(position(151, 25), 0.1f, g_map);
         entities[2] = new virus_spawner(position(51, 25), 0.1f, g_map);
         entities[3] = new virus_spawner(position(81, 50), 0.1f, g_map);
@@ -1534,6 +1561,8 @@ void mapchange(int x)
     }
     else if (maplevel == 3)
     {
+        wallskin = image(NULL, 0);
+        backgroundchange("white", "clear", "clear");
         entities[1] = new virus_spawner(position(98, 161), 0.1f, g_map);
         entities[2] = new virus_spawner(position(73, 135), 0.1f, g_map);
         entities[3] = new virus_spawner(position(98, 109), 0.1f, g_map);
@@ -1914,6 +1943,8 @@ void mapchange(int x)
     }
     else if (maplevel == 4)
     {
+        wallskin = image(NULL, 96);
+        backgroundchange("nature", "nature", "clear");
         entities[1] = new virus_spawner(position(75, 145), 0.1f, g_map);
         entities[2] = new virus_spawner(position(122, 105), 0.1f, g_map);
         entities[3] = new virus_spawner(position(78, 137), 0.1f, g_map);
@@ -1926,11 +1957,11 @@ void mapchange(int x)
         entities[10] = new virus_spawner(position(114, 88), 0.1f, g_map);
         entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
         entities[12] = new lightning(position(91, 170), fg_map);
-        entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun", "Walter", g_map);
-        entities[14] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "There's only one left!`You can do it!`Rid this planet of its plague", "Worshipper", g_map);
+        entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun(click to shoot)", "Walter", g_map);
+        entities[14] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "There's only one left!`You can do it, we are so close!`Cure this planet of its plague", "Worshipper", g_map);
         for (int i = 0; i < 9; i++)
         {
-            bgc_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
+            bg_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
         }
         g_map.setmapposition(position(94, 180), image(-87, 241)); //Water Gun
         g_dElapsedTime = 1000.0; // susceptible to changes for level 4
@@ -2245,7 +2276,7 @@ void mapchange(int x)
             g_map.setmapposition(position(i, 24), image(NULL, 240));
         }
         entities[1] = new boss(position(39, 3), 1, g_map);
-        entities[2] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "Finally, we can save the world`curing it of the plague...` THAT IS HUMANITY", "Cult Worshipper", g_map);
+        //entities[2] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "Finally, we can save the world`curing it of the plague...` THAT IS HUMANITY", "Cult Worshipper", g_map);
     }
 }
 
@@ -2487,6 +2518,18 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         bg_map.clearmap();
     }
+    else if (bg == "yellow")
+    {
+        bg_map.fill(bg_images_yellow, size(bg_images_yellow), bg_weightage_yellow);
+    }
+    else if (bg == "black")
+    {
+        bg_map.fill(bg_images_black, size(bg_images_black), bg_weightage_black);
+    }
+    else if (bg == "brown")
+    {
+        bg_map.fill(bg_images_brown, size(bg_images_brown), bg_weightage_brown);
+    }
 
     if (bgc == "nature")
     {
@@ -2522,5 +2565,6 @@ g_map
 241  -> Water Gun(fg: blue bg: NULL     text: -87)
 bgc_map
 reds -> fire  (fg: reds    bg: reds     text: -21)
+bg_map
 144  -> water (fg: NULL    bg: blue     text: NULL)
 */
