@@ -1,6 +1,6 @@
 #include "virus_spawner.h"
 
-virus_spawner::virus_spawner(position position, float spd, map& g_map): entity(position, image('V', 2 + 80), 0, 1, "virus spawner"){
+virus_spawner::virus_spawner(position position, float spd, map& g_map): entity(position, image('V', 2 + 80), spd, 1, "virus spawner"){
 	setpos(pos, g_map);
 }
 virus_spawner::~virus_spawner() {
@@ -9,7 +9,7 @@ virus_spawner::~virus_spawner() {
 
 //other methods
 void virus_spawner::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
-	spd = rand() % 1 + 1;
+	spd = rand() % 1 + 0;
 	if (virus::gettotal() < virus::getmax())
 	{
 		int dir = rand() % 8 + 1;

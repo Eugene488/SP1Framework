@@ -28,10 +28,10 @@ void player::setItimer(float timer) {
 	invulntimer = timer;
 }
 void player::setfireratetimer(float time) {
-	fireratetimer += time;
+	fireratetimer = time;
 }
 void player::setfirerate(float time) {
-	firerate += time;
+	firerate = time;
 }
 //other methods
 void player::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
