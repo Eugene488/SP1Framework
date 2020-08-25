@@ -7,8 +7,11 @@ NPC::~NPC() {
 }
 
 //other methods
+void NPC::toggletext() {
+	showtext = !showtext;
+}
 void NPC::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
-	//TODO
+	setpos(pos, g_map);
 }
 void NPC::displaytext(string* sentence, int lines, WORD textcolour, map& fg_map) {
 	for (int i = 0; i < lines; i++)
@@ -18,7 +21,7 @@ void NPC::displaytext(string* sentence, int lines, WORD textcolour, map& fg_map)
 }
 void NPC::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* g_player) {
 	float distancefromplayer = sqrt(pow(pos.get('x') - g_player->getpos().get('x'), 2) + pow(pos.get('y') - g_player->getpos().get('y'),2));
-	if (distancefromplayer <= 15)
+	if (distancefromplayer <= 15 && showtext)
 	{
 		if (currentsentenceposition <= dialogue.length())
 		{

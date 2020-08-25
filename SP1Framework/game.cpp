@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 1;
+int maplevel = 4;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -105,10 +105,6 @@ void init(void)
     mapchange(5);
     //init maps
     renderWall(); //creating the border walls
-    //background char map
-    bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
-    //background colour only map
-    bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
     // Setting attributes of player
     previmg = image(NULL, 0);
     for (int i = 0; i < MAXTOOLS; i++)
@@ -116,7 +112,6 @@ void init(void)
         tools[i] = "none";
     }
     tools[0] = "fists";
-    tools[1] = "Water Gun";
     // Set precision for floating point output
     //g_dElapsedTime = 3600.0;    // Susceptible to change
 
@@ -513,9 +508,7 @@ void moveCharacter()
         mapchange(maplevel);
         futurloc = entities[0]->getpos();
     }
-
-    WORD g_mapcolour1 = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
-    if (g_mapcolour1 == static_cast<WORD>(0x0D)) //TP
+    else if (g_mapcolour == static_cast<WORD>(0x0D)) //TP
     {
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
@@ -553,6 +546,18 @@ void moveCharacter()
                     }
                     //TODO other negative effects
                 }
+            }
+        }
+    }
+    else if (g_mapcolour == static_cast<WORD>(241)) //Water Gun
+    {
+        for (int i = 0; i < MAXTOOLS; i++)
+        {
+            if (tools[i] == "none")
+            {
+                tools[i] = "Water Gun";
+                currenttool = i;
+                break;
             }
         }
     }
@@ -625,6 +630,18 @@ void moveCharacter()
     //using current tool
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
+        //clicking on NPCs make them not talk/talk
+        getentityfrompos(idx, position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), g_map);
+        if (idx[0] != -1)
+        {
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[idx[i]]->getimage().gettext() == static_cast<char>(2))
+                {
+                    static_cast<NPC*>(entities[idx[i]])->toggletext();
+                }
+            }
+        }
         if (tools[currenttool] == "Water Gun")
         {
             if (g_player->getfireratetimer() >= g_player->getfirerate())
@@ -637,7 +654,6 @@ void moveCharacter()
                         entities[i] = new projectile(g_player->getpos(), position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), image(7, 11), 0.1f, "water balloon", g_map, "fire", 3, image(NULL, 144));
                         break;
                     }
-
                 }
             }
         }
@@ -843,7 +859,7 @@ void renderFramerate()
     ss << "current tool: ";
     ss << tools[currenttool];
     c.X = 0;
-    c.Y = g_Console.getConsoleSize().Y;
+    c.Y = g_Console.getConsoleSize().Y-1;
     g_Console.writeToBuffer(c, ss.str(), 96);
 
 }
@@ -972,6 +988,7 @@ void getentityfrompos(int* ptr, position pos, map& g_map) {
                 if (ptr[i2] == NULL)
                 {
                     ptr[i2] = i;
+                    break;
                 }
             }
         }
@@ -1524,6 +1541,13 @@ void mapchange(int x)
         entities[9] = new virus_spawner(position(83, 141), 0.1f, g_map);
         entities[10] = new virus_spawner(position(114, 88), 0.1f, g_map);
         entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
+        entities[12] = new lightning(position(91, 170), fg_map);
+        entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun", "Walter", g_map);
+        for (int i = 0; i < 9; i++)
+        {
+            bgc_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
+        }
+        g_map.setmapposition(position(94, 180), image(-87, 241)); //Water Gun
         g_dElapsedTime = 1000.0; // susceptible to changes for level 4
         for (int i = 0; i < 6; i++)
         {
@@ -2109,8 +2133,8 @@ g_map
 0x0B -> mask  (fg: white   bg: NULL     text: 'M')
   0  -> nothing(fg: NULL   bg: NULL     text: NULL)
   8  -> boulder(fg: grey   bg: NULL     text: '#')
-
-bg_map
+241  -> Water Gun(fg: blue bg: NULL     text: -87)
+bgc_map
 reds -> fire  (fg: reds    bg: reds     text: -21)
 144  -> water (fg: NULL    bg: blue     text: NULL)
 */
