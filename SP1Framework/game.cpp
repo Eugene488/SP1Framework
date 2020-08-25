@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 1;
+int maplevel = 4;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -396,11 +396,19 @@ void updateGame(double dt)       // gameplay logic
     // get the delta time
     g_dElapsedTime -= dt;
     updatetimer += dt;
+
     if (lightningtimer < 1)
     {
         lightningtimer += dt;
     }
-    g_dbufftime += dt;
+    if (g_dbufftime < 5.0)
+    {
+        g_dbufftime += dt;
+    }
+    if (g_dbufftime >= 5.0)
+    {
+        toiletpaperbuff = false;
+    }
     // increasing timers for entities
 
     for (int i = 0; i < MAXENTITY; i++)
@@ -530,7 +538,7 @@ void moveCharacter()
                     if (entities[idx[i]]->getname() == "virus")
                     {
                         entities[idx[i]]->sethp(0);
-                        if (toiletpaperbuff == true && g_dbufftime < 5.0)
+                        if (toiletpaperbuff == true)
                         {
                             g_player->takedmg(0);
                         }
@@ -848,12 +856,14 @@ void renderFramerate()
     }
     c.X = 0;
     c.Y = 0;
-
-    g_Console.writeToBuffer(c, ss.str(), 0x60);
-
-    
-
-    g_Console.writeToBuffer(c, ss.str(), 4 + 96);
+    if (toiletpaperbuff == true)
+    {
+        g_Console.writeToBuffer(c, ss.str(), 14 + 96);
+    }
+    else
+    {
+        g_Console.writeToBuffer(c, ss.str(), 4 + 96);
+    }
     //displays current tool
     ss.str("");
     ss << "current tool: ";
@@ -1077,6 +1087,7 @@ void mapchange(int x)
     g_map.clearmap();
     bg_map.clearmap();
     bgc_map.clearmap();
+    fg_map.clearmap();
     //background char map
     bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
     //background colour only map
@@ -1092,8 +1103,8 @@ void mapchange(int x)
         
         entities[1] = new virus_spawner(position(107, 35), 0.1f, g_map);
         entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
-        
-        
+        entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS for 4.9+ seconds(no refunds)", "TP Man", g_map);
+        entities[4] = new NPC(position(190, 35), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`fulfil your destiny and retrieve the 4 Masks of Yendor and save the world`I will send you to as close to the masks as I can", "Worshipper", g_map);
      
         for (int i = 0; i < 40; i++)
         {
@@ -1315,8 +1326,7 @@ void mapchange(int x)
         g_map.setmapposition(position(152, 15), image('T', charColor));
         // END OF MAP 1 DESIGN
     }
-    
-    if (maplevel == 2)
+    else if (maplevel == 2)
     {
         g_dElapsedTime = 75.0; // susceptible to changes for level 2
 
@@ -1522,7 +1532,7 @@ void mapchange(int x)
         g_map.setmapposition(position(43, 75), image('T', charColor));
 
     }
-    if (maplevel == 3)
+    else if (maplevel == 3)
     {
         entities[1] = new virus_spawner(position(98, 161), 0.1f, g_map);
         entities[2] = new virus_spawner(position(73, 135), 0.1f, g_map);
@@ -1902,7 +1912,7 @@ void mapchange(int x)
         WORD charColor = 0x0D;
         g_map.setmapposition(position(131, 156), image('T', charColor));
     }
-    if (maplevel == 4)
+    else if (maplevel == 4)
     {
         entities[1] = new virus_spawner(position(75, 145), 0.1f, g_map);
         entities[2] = new virus_spawner(position(122, 105), 0.1f, g_map);
@@ -1917,6 +1927,7 @@ void mapchange(int x)
         entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
         entities[12] = new lightning(position(91, 170), fg_map);
         entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun", "Walter", g_map);
+        entities[14] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "There's only one left!`You can do it!`Rid this planet of its plague", "Worshipper", g_map);
         for (int i = 0; i < 9; i++)
         {
             bgc_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
@@ -2219,7 +2230,7 @@ void mapchange(int x)
 
         entities[0]->setpos(position(100, 199), g_map);
     }
-    if (maplevel == 5)
+    else if (maplevel == 5)
     {
         g_dElapsedTime = 999;
         g_player->setpos(position(39, 18), g_map);
@@ -2234,6 +2245,7 @@ void mapchange(int x)
             g_map.setmapposition(position(i, 24), image(NULL, 240));
         }
         entities[1] = new boss(position(39, 3), 1, g_map);
+        entities[2] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "Finally, we can save the world`curing it of the plague...` THAT IS HUMANITY", "Cult Worshipper", g_map);
     }
 }
 
