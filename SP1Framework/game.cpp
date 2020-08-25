@@ -102,6 +102,7 @@ void init(void)
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
     g_player = static_cast<player*>(entities[0]);
+    mapchange(maplevel);
     //init maps
     renderWall(); //creating the border walls
     // Setting attributes of player
