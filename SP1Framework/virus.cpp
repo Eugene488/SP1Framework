@@ -1,7 +1,7 @@
 #include "virus.h"
 
 int virus::totalvirus = 0;
-int virus::maxvirus = 20;
+int virus::maxvirus = 50;
 
 virus::virus(float spd, map& g_map){
 	this->spdtimer = 0;

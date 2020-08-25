@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="boulder.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="fire.cpp" />
     <ClCompile Include="Framework\console.cpp" />
@@ -95,6 +96,7 @@
     <ClCompile Include="virus_spawner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="boulder.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="fire.h" />
     <ClInclude Include="Framework\console.h" />

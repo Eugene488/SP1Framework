@@ -1016,7 +1016,7 @@ void mapchange(int x)
     bgc_map.fill(bgc_images_nature, size(bgc_images_nature), bgc_weightage_nature);
     //background colour only map
     bg_map.fill(bg_images_nature, size(bg_images_nature), bg_weightage_nature);
-    WORD charColor = 240;
+    WORD charColor = 242;
     if (maplevel < 5)
         g_eGameState = S_MAPT;
     if (maplevel == 1)
