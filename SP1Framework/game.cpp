@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 1;
+int maplevel = 4;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -43,7 +43,7 @@ float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
 float lightningtimer = 0;
-const int MAXENTITY = 500;
+const int MAXENTITY = 1000;
 image nonbuffplayerskin = image(1, 0);
 
 
@@ -130,7 +130,8 @@ void init(void)
     g_eGameState = S_MAIN;
 
     // sets the width, height and the font name to use in the console
-    g_Console.setConsoleFont(0, 16, L"");
+    //g_Console.setConsoleFont(0, 16, L"");
+    //g_Console.setConsoleFont(0, 24, L"Arial");
 
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
@@ -405,7 +406,7 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    g_dElapsedTime -= dt;
+    //g_dElapsedTime -= dt;
     updatetimer += dt;
 
     if (lightningtimer < 1)
@@ -679,6 +680,15 @@ void moveCharacter()
                 }
             }
         }
+        //debugging
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            if (entities[i] == NULL)
+            {
+                entities[i] = new boulder(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), 1,  g_map);
+                break;
+            }
+        }
     }
 }
 
@@ -938,8 +948,8 @@ void renderInputEvents()
     //debugtext = g_player->gethp();
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
-    debugtext = g_player->gethp();
-    //ss << "debug text: " << debugtext;
+    //debugtext = g_player->gethp();
+    ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
 
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
@@ -1131,7 +1141,8 @@ void mapchange(int x)
         entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
         entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS for 4.9+ seconds(no refunds)", "TP Man", g_map);
         entities[4] = new NPC(position(165, 43), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`Retrieve the 4 Masks of Yendor and save the world`I will guide you along the journey", "Worshipper", g_map);
-     
+        entities[5] = new NPC(position(136, 42), 99, 0.25f, image(2, 10), "Beware of the virus!`These dont seem to be natural...`(mouse over items to see what they are)", "doctor", g_map);
+
         for (int i = 0; i < 40; i++)
         {
             g_map.setmapposition(position(180, 5 + i), image(' ', charColor));
@@ -1569,6 +1580,64 @@ void mapchange(int x)
         entities[4] = new virus_spawner(position(117, 169), 0.1f, g_map);
         entities[5] = new virus_spawner(position(118, 183), 0.1f, g_map);
         g_dElapsedTime = 75.0; // susceptible to changes for level 3
+        //barricades
+        for (int i = 0; i < 5; i++)
+        {
+            entities[6 + i] = new boulder(position(97, 195 + i), 1, g_map);
+        }
+        entities[11] = new boulder(position(89, 184), 1, g_map);
+        entities[12] = new boulder(position(90, 184), 1, g_map);
+        entities[13] = new boulder(position(88, 182), 1, g_map);
+        entities[14] = new boulder(position(90, 183), 1, g_map);
+        entities[15] = new boulder(position(89, 182), 1, g_map);
+        entities[16] = new boulder(position(89, 183), 1, g_map);
+        entities[17] = new NPC(position(78, 195), 99, 0.25f, image(2, 0), "Hey, can you help me push those barricades away?`I would do it myself but I'm too weak.", "lace", g_map);
+        entities[18] = new NPC(position(96, 199), 99, 0.25f, image(2, 4), "Psst, you can click on him to shut him up.`No need to listen to his excuses.", "Worshipper", g_map);
+        for (int i = 0; i < 4; i++)
+        {
+            entities[19+i] = new boulder(position(103+i, 115), 1, g_map);
+        }
+        entities[23] = new boulder(position(104, 116), 1, g_map);
+        entities[24] = new boulder(position(105, 116), 1, g_map);
+        entities[26] = new boulder(position(107, 116), 1, g_map);
+        for (int i = 0; i < 4; i++)
+        {
+            entities[27+i] = new boulder(position(104 + i, 117), 1, g_map);
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            entities[31 + i] = new boulder(position(103 + (2*i), 118), 1, g_map);
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            entities[27 + i] = new boulder(position(104 + i, 119), 1, g_map);
+        }
+        entities[30] = new boulder(position(103, 131), 1, g_map);
+        entities[31] = new boulder(position(104, 132), 1, g_map);
+        entities[32] = new boulder(position(103, 133), 1, g_map);
+        entities[33] = new boulder(position(105, 133), 1, g_map);
+        for (int i = 0; i < 3; i++)
+        {
+            entities[33 + i] = new boulder(position(109 + i, 131), 1, g_map);
+        }
+        entities[36] = new boulder(position(108, 132), 1, g_map);
+        entities[37] = new boulder(position(110, 132), 1, g_map);
+        entities[38] = new boulder(position(109, 133), 1, g_map);
+        entities[39] = new boulder(position(111, 132), 1, g_map);
+        entities[40] = new boulder(position(112, 132), 1, g_map);
+        for (int i = 0; i < 5; i++)
+        {
+            entities[41 + i] = new boulder(position(132 + i, 152), 1, g_map);
+        }
+        entities[46] = new boulder(position(132, 153), 1, g_map);
+        for (int i = 0; i < 3; i++)
+        {
+            entities[47 + i] = new boulder(position(134 + i, 153), 1, g_map);
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            entities[50 + i] = new boulder(position(132 + i, 154), 1, g_map);
+        }
         for (int i = 0; i < 43; i++) //Map 3's Wrist
         {
             g_map.setmapposition(position(77, 200 - i), image(' ', charColor));
@@ -1943,7 +2012,7 @@ void mapchange(int x)
     }
     else if (maplevel == 4)
     {
-        wallskin = image(NULL, 96);
+        wallskin = image(-78, 6 + 224);
         backgroundchange("nature", "nature", "clear");
         entities[1] = new virus_spawner(position(75, 145), 0.1f, g_map);
         entities[2] = new virus_spawner(position(122, 105), 0.1f, g_map);
