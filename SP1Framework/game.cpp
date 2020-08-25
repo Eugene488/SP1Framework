@@ -455,8 +455,11 @@ void updateGame(double dt)       // gameplay logic
                     {
                         ny = -1;
                     }
-                    entities[i] = new lightning(position(g_player->getpos().get('x') + (x * nx), g_player->getpos().get('y') + (y * ny)), fg_map);
-                    break;
+                    if (g_player->getpos().get('y') + (y * ny) < 175)
+                    {
+                        entities[i] = new lightning(position(g_player->getpos().get('x') + (x * nx), g_player->getpos().get('y') + (y * ny)), fg_map);
+                        break;
+                    }
                 }
             }
         }
