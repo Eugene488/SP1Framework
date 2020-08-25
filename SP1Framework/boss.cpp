@@ -50,7 +50,6 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 				}
 			}
 		}
-		spd = 45;
 	}
 	if (phase == 2)
 	{
@@ -166,7 +165,7 @@ void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* pl
 		{
 			backgroundchange("", "", "white");
 		}
-		if (phasetimer >= 88)
+		if (phasetimer >= 58)
 		{
 			phasechange(2);
 		}
@@ -177,7 +176,7 @@ void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* pl
 		{
 			backgroundchange("", "", "white");
 		}
-		if (phasetimer >= 40)
+		if (phasetimer >= 30)
 		{
 			extern int maplevel;
 			maplevel = 6;
@@ -194,11 +193,14 @@ void boss::phasechange(int phasetochangeto) {
 	phasetimer = 0;
 	if (phase == 1)
 	{
+		spd = 30;
+		spdtimer = 25;
 		virus::setmax(200);
 	}
 	else if (phase == 2)
 	{
 		spd = 7;
+		spdtimer = 0;
 	}
 }
 void boss::clearentities(entity** entities, map& g_map, map& bg_map, map& bgc_map) {
