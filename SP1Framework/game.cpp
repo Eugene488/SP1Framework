@@ -1399,7 +1399,7 @@ void mapchange(int x)
         entities[2] = new virus_spawner(position(51, 25), 0.1f, g_map);
         entities[3] = new virus_spawner(position(81, 50), 0.1f, g_map);
         entities[4] = new virus_spawner(position(52, 75), 0.1f, g_map);
-        entities[5] = new virus_spawner(position(151, 75), 0.1f, g_map);
+        
 
         for (int i = 0; i < 11; i++) //Map 2's Skeleton
         {
