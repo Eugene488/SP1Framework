@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 4;
+int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -43,7 +43,7 @@ float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
 float lightningtimer = 0;
-const int MAXENTITY = 1000;
+const int MAXENTITY = 2000;
 image nonbuffplayerskin = image(1, 0);
 
 
@@ -436,7 +436,30 @@ void updateGame(double dt)       // gameplay logic
     //updating things based on delta time for entities
     if (updatetimer >= updatetime)
     {
-       
+        int lightningspawn = rand() % 100;
+        if (maplevel == 4 && lightningspawn == 2)
+        {
+            for (int i = 0; i < MAXENTITY; i++)
+            {
+                if (entities[i] == NULL)
+                {
+                    int x = rand() % 5 + 5;
+                    int y = rand() % 5 + 5;
+                    int nx = rand() % 3 - 1;
+                    int ny = rand() % 3 - 1;
+                    if (nx == 0)
+                    {
+                        nx = -1;
+                    }
+                    if (ny == 0)
+                    {
+                        ny = -1;
+                    }
+                    entities[i] = new lightning(position(g_player->getpos().get('x') + (x * nx), g_player->getpos().get('y') + (y * ny)), fg_map);
+                    break;
+                }
+            }
+        }
         updatetimer = 0;
         for (int i = 0; i < MAXENTITY; i++)
         {
@@ -588,6 +611,10 @@ void moveCharacter()
     if (bgc_map_char == -21) //fire
     {
         g_player->takedmg(1);
+        if (g_player->gethp() < 1)
+        {
+            g_eGameState = S_OVER;
+        }
     }
     //"rendering"
     position prevloc = entities[0]->getpos();
@@ -681,14 +708,14 @@ void moveCharacter()
             }
         }
         //debugging
-        for (int i = 0; i < MAXENTITY; i++)
-        {
-            if (entities[i] == NULL)
-            {
-                entities[i] = new boulder(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), 1,  g_map);
-                break;
-            }
-        }
+        //for (int i = 0; i < MAXENTITY; i++)
+        //{
+        //    if (entities[i] == NULL)
+        //    {
+        //        entities[i] = new boulder(position(g_mouseEvent.mousePosition.X + g_map.getcampos().get('x'), g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y')), 1,  g_map);
+        //        break;
+        //    }
+        //}
     }
 }
 
@@ -2025,9 +2052,11 @@ void mapchange(int x)
         entities[9] = new virus_spawner(position(83, 141), 0.1f, g_map);
         entities[10] = new virus_spawner(position(114, 88), 0.1f, g_map);
         entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
-        entities[12] = new lightning(position(91, 170), fg_map);
         entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun(click to shoot)", "Walter", g_map);
         entities[14] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "There's only one left!`You can do it, we are so close!`Cure this planet of its plague", "Worshipper", g_map);
+        entities[15] = new fire(position(90, 174), 1, 3, g_map, bg_map);
+        entities[16] = new fire(position(69, 92), 10, 3, g_map, bg_map);
+        entities[17] = new fire(position(107, 72), 10, 3, g_map, bg_map);
         for (int i = 0; i < 9; i++)
         {
             bg_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
