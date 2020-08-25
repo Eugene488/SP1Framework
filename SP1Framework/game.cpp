@@ -28,7 +28,7 @@ double  g_dDeltaTime;
 double  g_dbufftime;
 SKeyEvent g_skKeyEvent[K_COUNT];
 SMouseEvent g_mouseEvent;
-int maplevel = 4;
+int maplevel = 1;
 // Game specific variables here
 EGAMESTATES g_eGameState = S_MAIN; // initial state
 int MAPSIZEX = 200;
@@ -102,7 +102,6 @@ void init(void)
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 11));
     g_player = static_cast<player*>(entities[0]);
-    mapchange(5);
     //init maps
     renderWall(); //creating the border walls
     // Setting attributes of player
@@ -516,35 +515,35 @@ void moveCharacter()
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
-        getentityfrompos(&idx[0], futurloc, g_map);
+        getentityfrompos(idx, futurloc, g_map);
         if (idx[0] != -1)
         {
             for (int i = 0; i < MAXENTITY; i++)
             {
                 if (idx == NULL)
                 {
-                    break;
+                    //do nothing
                 }
                 else
                 {
-                    entities[idx[i]]->sethp(0);
-                    if (toiletpaperbuff == true && g_dbufftime < 5.0)
+                    if (entities[idx[i]]->getname() == "virus")
                     {
-                        
-                        
-                        g_player->takedmg(0);
-                    }
-                    
-                    else
-                    {
-                        g_player->takedmg(1);
-                    }
+                        entities[idx[i]]->sethp(0);
+                        if (toiletpaperbuff == true && g_dbufftime < 5.0)
+                        {
+                            g_player->takedmg(0);
+                        }
+                        else
+                        {
+                            g_player->takedmg(1);
+                        }
 
-                    if (g_player->gethp() < 1)
-                    {
-                        g_eGameState = S_OVER;
+                        if (g_player->gethp() < 1)
+                        {
+                            g_eGameState = S_OVER;
+                        }
+                        //TODO other negative effects
                     }
-                    //TODO other negative effects
                 }
             }
         }
@@ -906,7 +905,7 @@ void renderInputEvents()
     //debugtext = g_player->gethp();
     ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
-    //debugtext = g_player->gethp();
+    debugtext = g_player->gethp();
     ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
 
