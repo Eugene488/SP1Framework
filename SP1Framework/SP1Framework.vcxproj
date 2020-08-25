@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="boss.cpp" />
     <ClCompile Include="boulder.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="fire.cpp" />
@@ -86,7 +85,6 @@
     <ClCompile Include="Framework\timer.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="image.cpp" />
-    <ClCompile Include="lightning.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="NPC.cpp" />
@@ -98,7 +96,6 @@
     <ClCompile Include="virus_spawner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="boss.h" />
     <ClInclude Include="boulder.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="fire.h" />
@@ -106,7 +103,6 @@
     <ClInclude Include="Framework\timer.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="image.h" />
-    <ClInclude Include="lightning.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="NPC.h" />
     <ClInclude Include="player.h" />
