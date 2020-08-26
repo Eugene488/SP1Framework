@@ -1,6 +1,6 @@
 #include "projectile.h"
 
-projectile::projectile(position startpos, position endpos, image img, float spd, string name, map& g_map, string target, int dmg, image trailimg) : entity(startpos, img, spd, 1, name), truex(startpos.get('x')), truey(startpos.get('y')), target(target), dmg(dmg), trailimg(trailimg){
+projectile::projectile(position startpos, position endpos, image img, float spd, string name, map& g_map, string target, int dmg, image trailimg, string trailmap) : entity(startpos, img, spd, 1, name), truex(startpos.get('x')), truey(startpos.get('y')), target(target), dmg(dmg), trailimg(trailimg), trailmap(trailmap){
 	float distance = sqrt(pow(endpos.get('x') - startpos.get('x'), 2) + pow(endpos.get('y') - startpos.get('y'), 2));
 	directionx = (endpos.get('x') - startpos.get('x'))/distance;
 	directiony = (endpos.get('y') - startpos.get('y'))/distance;
@@ -68,9 +68,17 @@ void projectile::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int 
 
 		g_map.setmapposition(prevloc, previmg);
 		setpos(futurloc, g_map);
+		
 		if (trailimg.getcolour() != 0)
 		{
-			bg_map.setmapposition(pos, trailimg);
+			if (trailmap == "bg")
+			{
+				bg_map.setmapposition(pos, trailimg);
+			}
+			else if (trailmap == "g")
+			{
+				g_map.setmapposition(prevloc, trailimg);
+			}
 		}
 	}
 	else
