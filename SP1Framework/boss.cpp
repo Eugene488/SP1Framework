@@ -3,7 +3,7 @@
 #include "virus_spawner.h"
 #include "boulder.h"
 
-const int boss::maxentities = 500;
+const int boss::maxentities = 2000;
 
 extern void backgroundchange(string bg, string bgc, string fg);
 extern map fg_map;
