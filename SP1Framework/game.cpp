@@ -20,7 +20,6 @@
 #include "boulder.h"
 #include "lightning.h"
 #include "boss.h"
-
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
 bool toiletpaperbuff = false;
 double  g_dElapsedTime;
@@ -554,6 +553,7 @@ void moveCharacter()
         maskrenderout();
         mapchange(maplevel);
         futurloc = entities[0]->getpos();
+        Beep(1600, 50);
     }
     else if (g_mapcolour == static_cast<WORD>(0x0D)) //TP
     {
@@ -561,6 +561,7 @@ void moveCharacter()
         g_dbufftime = 0.0;
         g_player->setimage(image(1, 14 + 128));
         maskrenderout();
+        Beep(500, 50);
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
@@ -585,6 +586,7 @@ void moveCharacter()
                         else
                         {
                             g_player->takedmg(1);
+                            Beep(200, 50);
                         }
 
                         if (g_player->gethp() < 1)
