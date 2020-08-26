@@ -585,7 +585,7 @@ void moveCharacter()
         g_dbufftime = 0.0;
         g_player->setimage(image(1, 14 + 128));
         maskrenderout();
-        Beep(500, 50);
+        PlaySound(TEXT("Fairy Dust Sound Effect.wav"), NULL, SND_ASYNC);
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
