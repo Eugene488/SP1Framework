@@ -6,6 +6,23 @@ NPC::~NPC() {
 	//do nothing
 }
 
+//setters
+void NPC::settext(string text, map& fg_map) {
+	dialogue = text;
+	//removing the text on screen
+	for (int i = 0; i < currentsentencenumber; i++)
+	{
+		int lengthy = currentsentences[i].length();
+		for (int i2 = 0; i2 < lengthy; i2++)
+		{
+			fg_map.setmapposition(position(pos.get('x') - lengthy / 2 + i2, pos.get('y') - (currentsentencenumber - i)), image(NULL, 0));
+		}
+		currentsentences[i] = "";
+	}
+	currentsentencenumber = 1;
+	currentsentenceposition = 0;
+}
+
 //other methods
 void NPC::toggletext() {
 	showtext = !showtext;

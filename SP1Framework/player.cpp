@@ -1,5 +1,7 @@
 #include "player.h"
 
+extern void flashred(float duration);
+
 player::player(): entity(position(0,0), image('P', 18), spd, 5, "player"), invulntime(0.5f), invulntimer(0){}
 player::~player() {
 	//do nothing
@@ -40,6 +42,7 @@ void player::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int list
 void player::takedmg(int dmg) {
 	if (invulntimer >= invulntime)
 	{
+		flashred(0.001f);
 		hp -= dmg;
 		invulntimer = 0;
 	}

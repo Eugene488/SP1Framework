@@ -42,9 +42,12 @@ float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
 float lightningtimer = 0;
+float flashtimer = 0;
+float flashtime = 0;
+float cutscenetimer = 0;
 const int MAXENTITY = 2000;
 image nonbuffplayerskin = image(1, 0);
-
+bool chained = false; //if chained, player cant move
 
 entity* entities[MAXENTITY]; //stores all entities that move
 image previmg; //the img under the player
@@ -83,9 +86,9 @@ int bg_weightage_yellow[] = { 1 };
 //black bg
 image bg_images_black[] = { image(NULL, 0) };
 int bg_weightage_black[] = { 1 };
-//brown bg
-image bg_images_brown[] = { image(NULL, 96) };
-int bg_weightage_brown[] = { 1 };
+//red bg
+image bg_images_red[] = { image(NULL, 64) };
+int bg_weightage_red[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -112,7 +115,7 @@ void init(void)
     }
     entities[0] = new player(position(190, 30), 5, 0.05f, image(1, 0));
     g_player = static_cast<player*>(entities[0]);
-    mapchange(maplevel);
+    
     //init maps
     renderWall(); //creating the border walls
     // Setting attributes of player
@@ -136,6 +139,7 @@ void init(void)
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
 
+    mapchange(maplevel);
     //debugging things
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -405,9 +409,23 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    //g_dElapsedTime -= dt;
+    g_dElapsedTime -= dt;
     updatetimer += dt;
 
+    if (maplevel == 5)
+    {
+        cutscenetimer += dt;
+        updatecutscene();
+    }
+    if (flashtimer <= flashtime)
+    {
+        flashtimer += dt;
+    }
+    else if (flashtime > 0)
+    {
+        backgroundchange("", "", "clear");
+        flashtime = -1;
+    }
     if (lightningtimer < 1)
     {
         lightningtimer += dt;
@@ -515,21 +533,24 @@ void moveCharacter()
    
     // Updating the location of the character based on the key down
     position futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
-    if (g_skKeyEvent[K_W].keyDown)
+    if (!chained)
     {
-        futurloc.set('y', futurloc.get('y') - 1);
-    }
-    if (g_skKeyEvent[K_A].keyDown)
-    {
-        futurloc.set('x', futurloc.get('x') - 1);
-    }
-    if (g_skKeyEvent[K_S].keyDown)
-    {
-        futurloc.set('y', futurloc.get('y') + 1);
-    }
-    if (g_skKeyEvent[K_D].keyDown)
-    {
-        futurloc.set('x', futurloc.get('x') + 1);  
+        if (g_skKeyEvent[K_W].keyDown)
+        {
+            futurloc.set('y', futurloc.get('y') - 1);
+        }
+        if (g_skKeyEvent[K_A].keyDown)
+        {
+            futurloc.set('x', futurloc.get('x') - 1);
+        }
+        if (g_skKeyEvent[K_S].keyDown)
+        {
+            futurloc.set('y', futurloc.get('y') + 1);
+        }
+        if (g_skKeyEvent[K_D].keyDown)
+        {
+            futurloc.set('x', futurloc.get('x') + 1);
+        }
     }
     //collision detection for solids
     for (int i = 0; i < size(solids); i++)
@@ -539,7 +560,10 @@ void moveCharacter()
             if (g_map.getmapposition(futurloc).getcolour() == static_cast<WORD>(8))
             {
                 getentityfrompos(idx, futurloc, g_map);
-                entities[idx[0]]->move(g_map, bg_map, bgc_map, solids, size(solids), entities, MAXENTITY);
+                if (idx[0] != -1)
+                {
+                    entities[idx[0]]->move(g_map, bg_map, bgc_map, solids, size(solids), entities, MAXENTITY);
+                }
             }
             futurloc = position(entities[0]->getpos().get('x'), entities[0]->getpos().get('y'));
             break;
@@ -581,7 +605,7 @@ void moveCharacter()
                         entities[idx[i]]->sethp(0);
                         if (toiletpaperbuff == true)
                         {
-                            g_player->takedmg(0);
+                            //do nothing
                         }
                         else
                         {
@@ -1145,6 +1169,7 @@ void maskrenderout()
     g_map.setmapposition(position(152, 15), image('T', charColor));
 }
 
+NPC* worshipper;
 void mapchange(int x)
 {
     clearentities();
@@ -1397,7 +1422,7 @@ void mapchange(int x)
     }
     else if (maplevel == 2)
     {
-        g_dElapsedTime = 75.0; // susceptible to changes for level 2
+        g_dElapsedTime = 40.0; // susceptible to changes for level 2
         wallskin = image(NULL, 80);
         backgroundchange("yellow", "clear", "clear");
         entities[1] = new virus_spawner(position(151, 25), 0.1f, g_map);
@@ -1611,7 +1636,7 @@ void mapchange(int x)
         entities[3] = new virus_spawner(position(98, 109), 0.1f, g_map);
         entities[4] = new virus_spawner(position(117, 169), 0.1f, g_map);
         entities[5] = new virus_spawner(position(118, 183), 0.1f, g_map);
-        g_dElapsedTime = 75.0; // susceptible to changes for level 3
+        g_dElapsedTime = 130.0; // susceptible to changes for level 3
         //barricades
         for (int i = 0; i < 5; i++)
         {
@@ -1623,7 +1648,7 @@ void mapchange(int x)
         entities[14] = new boulder(position(90, 183), 1, g_map);
         entities[15] = new boulder(position(89, 182), 1, g_map);
         entities[16] = new boulder(position(89, 183), 1, g_map);
-        entities[17] = new NPC(position(78, 195), 99, 0.25f, image(2, 0), "Hey, can you help me push those barricades away?`I would do it myself but I'm too weak.", "lace", g_map);
+        entities[17] = new NPC(position(78, 195), 99, 0.25f, image(2, 0), "Hey, can you help me push those barricades away?`I would do it myself but I'm currently too weak.", "lace", g_map);
         entities[18] = new NPC(position(96, 199), 99, 0.25f, image(2, 4), "Psst, you can click on him to shut him up.`No need to listen to his excuses.", "Worshipper", g_map);
         for (int i = 0; i < 4; i++)
         {
@@ -2057,7 +2082,7 @@ void mapchange(int x)
         entities[9] = new virus_spawner(position(83, 141), 0.1f, g_map);
         entities[10] = new virus_spawner(position(114, 88), 0.1f, g_map);
         entities[11] = new virus_spawner(position(85, 79), 0.1f, g_map);
-        entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun(click to shoot)", "Walter", g_map);
+        entities[13] = new NPC(position(95, 180), 99, 0.5f, image(2, 15), "It's dangerous to pass`with all these lighning and fire`Take this water gun(click to shoot)", "Scientist", g_map);
         entities[14] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "There's only one left!`You can do it, we are so close!`Cure this planet of its plague", "Worshipper", g_map);
         entities[15] = new fire(position(90, 174), 1, 3, g_map, bg_map);
         entities[16] = new fire(position(69, 92), 10, 3, g_map, bg_map);
@@ -2067,7 +2092,7 @@ void mapchange(int x)
             bg_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
         }
         g_map.setmapposition(position(94, 180), image(-87, 241)); //Water Gun
-        g_dElapsedTime = 1000.0; // susceptible to changes for level 4
+        g_dElapsedTime = 250.0; // susceptible to changes for level 4
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
@@ -2367,9 +2392,15 @@ void mapchange(int x)
     else if (maplevel == 5)
     {
         g_dElapsedTime = 999;
-        g_player->setpos(position(39, 18), g_map);
+        tools[1] = "none";
+        currenttool = 0;
+        chained = true;
+        g_player->setpos(position(39, 17), g_map);
+        nonbuffplayerskin = image(1, 11);
+        g_player->setimage(nonbuffplayerskin);
         bgc_map.fill(bgc_images_space, size(bgc_images_space), bgc_weightage_space);
         bg_map.fill(bg_images_space, size(bg_images_space), bg_weightage_space);
+        wallskin = image('+', 8);
         for (int i = 0; i < 25; i++)
         {
             g_map.setmapposition(position(79, i), image(NULL, 240));
@@ -2378,8 +2409,9 @@ void mapchange(int x)
         {
             g_map.setmapposition(position(i, 24), image(NULL, 240));
         }
-        entities[1] = new boss(position(39, 3), 1, g_map);
-        //entities[2] = new NPC(position(96, 193), 99, 0.25f, image(2, 4), "Finally, we can save the world`curing it of the plague...` THAT IS HUMANITY", "Cult Worshipper", g_map);
+        entities[1] = new boulder(position(99, 99), 1, g_map);
+        entities[2] = new NPC(position(39, 5), 99, 0.25f, image(2, 4), "Finally, we can save the world`and cure it of its plague......` THAT IS HUMANITY!", "Cult Worshipper", g_map);
+        worshipper = static_cast<NPC*>(entities[2]);
     }
 }
 
@@ -2629,9 +2661,9 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         bg_map.fill(bg_images_black, size(bg_images_black), bg_weightage_black);
     }
-    else if (bg == "brown")
+    else if (bg == "red")
     {
-        bg_map.fill(bg_images_brown, size(bg_images_brown), bg_weightage_brown);
+        bg_map.fill(bg_images_red, size(bg_images_red), bg_weightage_red);
     }
 
     if (bgc == "nature")
@@ -2655,8 +2687,96 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         fg_map.clearmap();
     }
+    else if (fg == "red")
+    {
+        fg_map.fill(bg_images_red, size(bg_images_red), bg_weightage_red);
+    }
 }
 
+void flashred(float duration) {
+    flashtimer = 0;
+    flashtime = duration;
+    backgroundchange("", "", "red");
+}
+
+void updatecutscene() {
+    if (cutscenetimer >= 25.5 && cutscenetimer <= 25.6f)
+    {
+        tools[1] = "Water Gun";
+        currenttool = 1;
+        chained = false;
+        entities[1]->die(g_map, bg_map, bgc_map);
+        entities[1] = new boss(position(39, 4), 1, g_map);
+        if (entities[3] != NULL)
+        {
+            entities[3]->sethp(0);
+        }
+        worshipper->setpos(position(100, 100), g_map);
+        g_map.setmapposition(position(39, 5), image(NULL, 0));
+    }
+    else if (cutscenetimer >= 24.2 && cutscenetimer <= 24.3f)
+    {
+        flashred(2);
+        g_map.setmapposition(position(34, 7), image(NULL, 0));
+        g_map.setmapposition(position(45, 7), image(NULL, 0));
+        g_map.setmapposition(position(30, 6), image(NULL, 0));
+        g_map.setmapposition(position(49, 6), image(NULL, 0));
+    }
+    else if (cutscenetimer >= 22.2 && cutscenetimer <= 22.3f)
+    {
+        g_map.setmapposition(position(34, 7), image('M', 4));
+        g_map.setmapposition(position(45, 7), image('M', 4));
+        g_map.setmapposition(position(30, 6), image('M', 4));
+        g_map.setmapposition(position(49, 6), image('M', 4));
+    }
+    else if (cutscenetimer >= 19 && cutscenetimer <= 19.1f)
+    {
+        worshipper->settext("FOOL`THIS CHANGES NOTHING`IT WILL STILL ARRIVE", fg_map);
+    }
+    else if (cutscenetimer >= 15.4 && cutscenetimer <= 15.5f)
+    {
+        for (int x = 0; x < 80; x++)
+        {
+            for (int y = 0; y < 25; y++)
+            {
+                if (g_map.getmapposition(position(x, y)).gettext() == 'Q' || g_map.getmapposition(position(x, y)).gettext() == '|')
+                {
+                    g_map.setmapposition(position(x, y), image(NULL, 0));
+                }
+            }
+        }
+        backgroundchange("", "", "clear");
+        entities[3] = new NPC(position(39, 14), 99, 0.25f, image(2, 0 + 16), "I have your back just as you once had mine", "lace", g_map);
+    }
+    else if (cutscenetimer >= 15.2f && cutscenetimer <= 15.3f)
+    {
+        if (entities[7] != NULL)
+        {
+            entities[7]->sethp(0);
+        }
+        backgroundchange("", "", "white");
+    }
+    else if (cutscenetimer >= 14.5f && cutscenetimer <= 14.6f)
+    {
+        entities[7] = new projectile(worshipper->getpos(), position(39, 12), image('|', 15 + 64), 0.05f, "laser", g_map, "player", 0, image('|', 15 + 64), "g");
+    }
+    else if (cutscenetimer >= 12 && cutscenetimer <= 12.1f)
+    {
+        worshipper->settext("I have no more use for you`ATONE FOR YOUR SINS", fg_map);
+    }
+    else if (cutscenetimer >= 6.8f && cutscenetimer <= 6.9f)
+    {
+        flashred(0.2f);
+    }
+    else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
+    {
+        worshipper->settext("No need to bother`I had control over you the entire time`now is no exception", fg_map);
+        entities[3] = new projectile(position(1, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+        entities[4] = new projectile(position(78, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+        entities[5] = new projectile(position(1, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+        entities[6] = new projectile(position(78, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+    }
+}
 /*list of colours used:
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)

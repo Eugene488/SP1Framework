@@ -18,6 +18,9 @@ public:
 	NPC(position position, int hp, float spd, image image, string texts, string name, map& g_map);
 	~NPC();
 
+	//setters
+	void settext(string text, map& fg_map);
+
 	//other methods
 	void toggletext();
 	void move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY);
