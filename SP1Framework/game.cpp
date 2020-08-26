@@ -577,7 +577,7 @@ void moveCharacter()
         maskrenderout();
         mapchange(maplevel);
         futurloc = entities[0]->getpos();
-        Beep(1600, 50);
+        PlaySound(TEXT("WIN.wav"), NULL, SND_ASYNC);
     }
     else if (g_mapcolour == static_cast<WORD>(0x0D)) //TP
     {
