@@ -1406,7 +1406,7 @@ void mapchange(int x)
     }
     else if (maplevel == 2)
     {
-        g_dElapsedTime = 35.0; // susceptible to changes for level 2
+        g_dElapsedTime = 40.0; // susceptible to changes for level 2
         wallskin = image(NULL, 80);
         backgroundchange("yellow", "clear", "clear");
         entities[1] = new virus_spawner(position(151, 25), 0.1f, g_map);
