@@ -610,7 +610,7 @@ void moveCharacter()
                         else
                         {
                             g_player->takedmg(1);
-                            Beep(200, 50);
+                            PlaySound(TEXT("Damage.wav"), NULL, SND_ASYNC);
                         }
 
                         if (g_player->gethp() < 1)
