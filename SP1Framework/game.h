@@ -124,5 +124,6 @@ void getentityfrompos(int* ptr, position pos, map& g_map);
 
 void spawnvirus();
 void backgroundchange(string bg, string bgc, string fg);
+void flashred(float duration);
 
 #endif // _GAME_H

@@ -43,6 +43,8 @@ float virusspawntimer;
 float updatetime = 0.05f;
 float updatetimer = 0;
 float lightningtimer = 0;
+float flashtimer = 0;
+float flashtime = 0;
 const int MAXENTITY = 2000;
 image nonbuffplayerskin = image(1, 0);
 
@@ -84,9 +86,9 @@ int bg_weightage_yellow[] = { 1 };
 //black bg
 image bg_images_black[] = { image(NULL, 0) };
 int bg_weightage_black[] = { 1 };
-//brown bg
-image bg_images_brown[] = { image(NULL, 96) };
-int bg_weightage_brown[] = { 1 };
+//red bg
+image bg_images_red[] = { image(NULL, 64) };
+int bg_weightage_red[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -409,6 +411,15 @@ void updateGame(double dt)       // gameplay logic
     g_dElapsedTime -= dt;
     updatetimer += dt;
 
+    if (flashtimer <= flashtime)
+    {
+        flashtimer += dt;
+    }
+    else if (flashtime > 0)
+    {
+        backgroundchange("", "", "clear");
+        flashtime = -1;
+    }
     if (lightningtimer < 1)
     {
         lightningtimer += dt;
@@ -580,7 +591,7 @@ void moveCharacter()
                         entities[idx[i]]->sethp(0);
                         if (toiletpaperbuff == true)
                         {
-                            g_player->takedmg(0);
+                            //do nothing
                         }
                         else
                         {
@@ -2627,9 +2638,9 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         bg_map.fill(bg_images_black, size(bg_images_black), bg_weightage_black);
     }
-    else if (bg == "brown")
+    else if (bg == "red")
     {
-        bg_map.fill(bg_images_brown, size(bg_images_brown), bg_weightage_brown);
+        bg_map.fill(bg_images_red, size(bg_images_red), bg_weightage_red);
     }
 
     if (bgc == "nature")
@@ -2653,6 +2664,16 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         fg_map.clearmap();
     }
+    else if (fg == "red")
+    {
+        fg_map.fill(bg_images_red, size(bg_images_red), bg_weightage_red);
+    }
+}
+
+void flashred(float duration) {
+    flashtimer = 0;
+    flashtime = duration;
+    backgroundchange("", "", "red");
 }
 
 /*list of colours used:
