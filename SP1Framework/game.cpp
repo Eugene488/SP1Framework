@@ -406,7 +406,7 @@ void updateGame(double dt)       // gameplay logic
     //increasing spawn timer for virus
     //virusspawntimer += dt; uncomment out for random virus spawning instead of using spawners
     // get the delta time
-    //g_dElapsedTime -= dt;
+    g_dElapsedTime -= dt;
     updatetimer += dt;
 
     if (lightningtimer < 1)
@@ -1395,7 +1395,7 @@ void mapchange(int x)
     }
     else if (maplevel == 2)
     {
-        g_dElapsedTime = 75.0; // susceptible to changes for level 2
+        g_dElapsedTime = 35.0; // susceptible to changes for level 2
         wallskin = image(NULL, 80);
         backgroundchange("yellow", "clear", "clear");
         entities[1] = new virus_spawner(position(151, 25), 0.1f, g_map);
@@ -1609,7 +1609,7 @@ void mapchange(int x)
         entities[3] = new virus_spawner(position(98, 109), 0.1f, g_map);
         entities[4] = new virus_spawner(position(117, 169), 0.1f, g_map);
         entities[5] = new virus_spawner(position(118, 183), 0.1f, g_map);
-        g_dElapsedTime = 75.0; // susceptible to changes for level 3
+        g_dElapsedTime = 130.0; // susceptible to changes for level 3
         //barricades
         for (int i = 0; i < 5; i++)
         {
@@ -2065,7 +2065,7 @@ void mapchange(int x)
             bg_map.setmapposition(position(86 + i, 175), image(NULL, 144)); //water
         }
         g_map.setmapposition(position(94, 180), image(-87, 241)); //Water Gun
-        g_dElapsedTime = 1000.0; // susceptible to changes for level 4
+        g_dElapsedTime = 250.0; // susceptible to changes for level 4
         for (int i = 0; i < 6; i++)
         {
             g_map.setmapposition(position(99, 194+i), image(' ', charColor));
