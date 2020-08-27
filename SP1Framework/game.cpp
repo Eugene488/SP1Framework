@@ -577,19 +577,21 @@ void moveCharacter()
     WORD g_mapcolour = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
     if (g_mapcolour == static_cast<WORD>(0x0C)) //mask
     {
+        PlaySound(TEXT("WIN.wav"), NULL, SND_ASYNC);
         maplevel++;
         maskrenderout();
         mapchange(maplevel);
         futurloc = entities[0]->getpos();
-        PlaySound(TEXT("WIN.wav"), NULL, SND_ASYNC);
+        
     }
     else if (g_mapcolour == static_cast<WORD>(0x0D)) //TP
     {
+        PlaySound(TEXT("Fairy Dust Sound Effect.wav"), NULL, SND_ASYNC);
         toiletpaperbuff = true;
         g_dbufftime = 0.0;
         g_player->setimage(image(1, 14 + 128));
         maskrenderout();
-        PlaySound(TEXT("Fairy Dust Sound Effect.wav"), NULL, SND_ASYNC);
+        
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
@@ -613,8 +615,8 @@ void moveCharacter()
                         }
                         else
                         {
-                            g_player->takedmg(1);
                             PlaySound(TEXT("Damage.wav"), NULL, SND_ASYNC);
+                            g_player->takedmg(1);
                         }
 
                         if (g_player->gethp() < 1)
@@ -1046,10 +1048,10 @@ void renderInputEvents()
     ss.str("");
 
     //debugtext = g_player->gethp();
-    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
+    //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
     //debugtext = g_player->gethp();
-    ss << "debug text: " << debugtext;
+    //ss << "debug text: " << debugtext;
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y'); //position debug
 
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x49);
