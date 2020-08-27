@@ -7,17 +7,26 @@ const int boss::maxentities = 2000;
 
 extern void backgroundchange(string bg, string bgc, string fg);
 extern map fg_map;
+extern int scene;
+extern float cutscenetimer;
+extern image wallskin;
 
-boss::boss(position position, float spd, map& g_map):entity(position, image(NULL, 0), 1, 100, "???") {}
+boss::boss(position position, float spd, map& g_map):entity(position, image(NULL, 0), 1, 10, "???") {}
 boss::~boss() {
 	//do nothing
 }
+//setters
+void boss::setphase(int phase) {
+	phasechange(phase);
+}
 
+//other methods
 void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsize, entity** entities, int MAXENTITY) {
 	if (phase == 1)
 	{
 		clearentities(entities, g_map, bg_map, bgc_map);
 		fg_map.clearmap();
+		wallskin = image(-78, 6 + 224);
 		backgroundchange("nature", "nature", "");
 		position futurloc;
 		for (int i = 0; i < 10; i++)
@@ -54,7 +63,14 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 	if (phase == 2)
 	{
 		clearentities(entities, g_map, bg_map, bgc_map);
-		backgroundchange("nature", "nature", "clear");
+		fg_map.clearmap();
+		spd = 100;
+	}
+	if (phase == 3)
+	{
+		clearentities(entities, g_map, bg_map, bgc_map);
+		wallskin = image(NULL, 0);
+		backgroundchange("purple", "clear", "clear");
 		position playerpos = entities[0]->getpos();
 		//spawn boulders to surrond player
 		for (int i2 = 0; i2 < 3; i2++)
@@ -97,7 +113,7 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 			}
 		}
 		//spawn virus spawners at random spots to surround player
-		for (int i = 0; i < 3; i++)
+		/*for (int i = 0; i < 3; i++)
 		{
 			int x = (rand() % 3 - 1) * 2;
 			int y = (rand() % 3 - 1) * 2;
@@ -112,7 +128,7 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 					}
 				}
 			}
-		}
+		}*/
 		//replace a random spot in block with lightning
 		int x = rand() % 3 - 1;
 		int y = rand() % 3 - 1;
@@ -120,7 +136,7 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 		{
 			if (entities[i] == NULL)
 			{
-				if (x + playerpos.get('x') > 0 && y + playerpos.get('y') > 0)
+				if (x + playerpos.get('x') > 0 && y + playerpos.get('y') > 0 && (x != 0 || y != 0))
 				{
 					entities[i] = new lightning(position(x + playerpos.get('x'), y + playerpos.get('y')), fg_map);
 					break;
@@ -138,6 +154,36 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 			g_map.setmapposition(position(i, 24), image(NULL, 240));
 			g_map.setmapposition(position(i, 0), image(NULL, 240));
 		}
+		//boss goes to random position
+		g_map.setmapposition(pos, image(NULL, 0));
+		setpos(position(rand() % 70 + 5, rand() % 20 + 2), g_map);
+		//spawn barricades
+		for (int i = 0; i < 500; i++)
+		{
+			int x = rand() % 78 + 1;
+			int y = rand() % 23 + 1;
+			int lightninginstead = rand() % 100;
+			if (g_map.getmapposition(position(x, y)).gettext() != static_cast<char>(1) || (x != pos.get('x') && y != pos.get('y')))
+			{
+				for (int i = 0; i < maxentities; i++)
+				{
+					if (entities[i] == NULL)
+					{
+						if (lightninginstead == 1)
+						{
+							entities[i] = new lightning(position(x, y), fg_map);
+							break;
+						}
+						else
+						{
+							entities[i] = new boulder(position(x, y), 1, g_map);
+							break;
+						}
+					}
+				}
+			}
+		}
+		spd = 15;
 	}
 }
 void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* player) {
@@ -168,20 +214,31 @@ void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* pl
 		if (phasetimer >= 58)
 		{
 			phasechange(2);
+			spd = 0;
 		}
 	}
-	else if (phase == 2)
+	else if (phase == 3)
 	{
-		if (spdtimer >= spd - 0.2f)
+		if (player->getpos().get('x') == pos.get('x') && player->getpos().get('y') == pos.get('y'))
 		{
+			hp -= 1;
+			spd = 0;
 			backgroundchange("", "", "white");
 		}
-		if (phasetimer >= 30)
+		if (hp <= 5)
 		{
 			extern int maplevel;
 			maplevel = 6;
 			//TODOphasechange(3);
 		}
+		stringstream ss;
+		ss.str("");
+		ss << "boss hp:";
+		for (int i = 0; i < hp - 5; i++)
+		{
+			ss << " " << char(3);
+		}
+		fg_map.setmapposition(position(27, 24), ss.str(), static_cast<WORD>(2));
 	}
 }
 void boss::updatetimers(float dt) {
@@ -199,7 +256,12 @@ void boss::phasechange(int phasetochangeto) {
 	}
 	else if (phase == 2)
 	{
-		spd = 7;
+		scene = 3;
+		cutscenetimer = 0;
+	}
+	else if (phase == 3)
+	{
+		spd = 1;
 		spdtimer = 0;
 	}
 }

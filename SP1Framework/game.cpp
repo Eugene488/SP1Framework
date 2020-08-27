@@ -45,6 +45,7 @@ float lightningtimer = 0;
 float flashtimer = 0;
 float flashtime = 0;
 float cutscenetimer = 0;
+int scene = 0;
 const int MAXENTITY = 2000;
 image nonbuffplayerskin = image(1, 0);
 bool chained = false; //if chained, player cant move
@@ -89,6 +90,9 @@ int bg_weightage_black[] = { 1 };
 //red bg
 image bg_images_red[] = { image(NULL, 64) };
 int bg_weightage_red[] = { 1 };
+//purple bg
+image bg_images_purple[] = { image(NULL, 80) };
+int bg_weightage_purple[] = { 1 };
 //debugging things
 float debugtext; //will be rendered at mousepos
 
@@ -290,8 +294,8 @@ void gameplayKBHandler(const KEY_EVENT_RECORD& keyboardEvent)
     case 0x44: key = K_D; break;
         //others
     case 0x54: key = K_T; break;
-    case 0x45: key = K_E; break;
-    case 0x51: key = K_Q; break;
+    /*case 0x45: key = K_E; break;
+    case 0x51: key = K_Q; break;*/
         //numbers
     case 0x30: key = K_0; break;
     case 0x31: key = K_1; break;
@@ -669,7 +673,7 @@ void moveCharacter()
         g_skKeyEvent[K_T].keyReleased = 0;
     }
     //changing tools
-    if (g_skKeyEvent[K_Q].keyReleased)
+    /*if (g_skKeyEvent[K_Q].keyReleased)
     {
         currenttool -= 1;
         if (currenttool == -1)
@@ -704,7 +708,7 @@ void moveCharacter()
         }
         g_skKeyEvent[K_E].keyReleased = 0;
         g_skKeyEvent[K_E].keyDown = 0;
-    }
+    }*/
     //using current tool
     if (g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED)
     {
@@ -745,6 +749,46 @@ void moveCharacter()
         //        break;
         //    }
         //}
+    }
+    //skip cutscene(for final boss)
+    if (maplevel == 5 && g_skKeyEvent[K_0].keyReleased)
+    {
+        if (scene == 1)
+        {
+            nonbuffplayerskin = image(1, 0);
+            g_player->setimage(nonbuffplayerskin);
+            flashred(2);
+            for (int x = 0; x < 80; x++)
+            {
+                for (int y = 0; y < 25; y++)
+                {
+                    if (g_map.getmapposition(position(x, y)).gettext() == 'Q' || g_map.getmapposition(position(x, y)).gettext() == '|' || g_map.getmapposition(position(x, y)).gettext() == 'M')
+                    {
+                        g_map.setmapposition(position(x, y), image(NULL, 0));
+                    }
+                }
+            }
+            cutscenetimer = 26;
+            tools[1] = "Water Gun";
+            currenttool = 1;
+            chained = false;
+            if (entities[3] != NULL)
+            {
+                entities[3]->sethp(0);
+            }
+            for (int i = 1; i < 50; i++)
+            {
+                if (entities[i] != NULL)
+                {
+                    entities[i]->sethp(0);
+                    entities[i] = NULL;
+                }
+            }
+            entities[1] = new boss(position(39, 4), 1, g_map);
+            g_map.setmapposition(position(39, 5), image(NULL, 0));
+        }
+        g_skKeyEvent[K_0].keyDown = 0;
+        g_skKeyEvent[K_0].keyReleased = 0;
     }
 }
 
@@ -953,12 +997,12 @@ void renderFramerate()
         g_Console.writeToBuffer(c, ss.str(), 4 + 96);
     }
     //displays current tool
-    ss.str("");
-    ss << "current tool: ";
-    ss << tools[currenttool];
-    c.X = 0;
-    c.Y = g_Console.getConsoleSize().Y-1;
-    g_Console.writeToBuffer(c, ss.str(), 96);
+    //ss.str("");
+    //ss << "current tool: ";
+    //ss << tools[currenttool];
+    //c.X = 0;
+    //c.Y = g_Console.getConsoleSize().Y-1;
+    //g_Console.writeToBuffer(c, ss.str(), 96);
 
 }
 
@@ -1018,7 +1062,7 @@ void renderInputEvents()
         if (idx[0] != -1)
         {
             ss << entities[idx[0]]->getname();
-            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 0x49);
+            g_Console.writeToBuffer(g_mouseEvent.mousePosition.X - (ss.tellp()/2), g_mouseEvent.mousePosition.Y + 1, ss.str(), 15);
         }
     }
 //    switch (g_mouseEvent.eventFlags)
@@ -1656,7 +1700,7 @@ void mapchange(int x)
         }
         entities[23] = new boulder(position(104, 116), 1, g_map);
         entities[24] = new boulder(position(105, 116), 1, g_map);
-        entities[26] = new boulder(position(107, 116), 1, g_map);
+        entities[25] = new boulder(position(107, 116), 1, g_map);
         for (int i = 0; i < 4; i++)
         {
             entities[27+i] = new boulder(position(104 + i, 117), 1, g_map);
@@ -1667,33 +1711,33 @@ void mapchange(int x)
         }
         for (int i = 0; i < 3; i++)
         {
-            entities[27 + i] = new boulder(position(104 + i, 119), 1, g_map);
+            entities[34 + i] = new boulder(position(104 + i, 119), 1, g_map);
         }
-        entities[30] = new boulder(position(103, 131), 1, g_map);
-        entities[31] = new boulder(position(104, 132), 1, g_map);
-        entities[32] = new boulder(position(103, 133), 1, g_map);
-        entities[33] = new boulder(position(105, 133), 1, g_map);
+        entities[100] = new boulder(position(103, 131), 1, g_map);
+        entities[101] = new boulder(position(104, 132), 1, g_map);
+        entities[37] = new boulder(position(103, 133), 1, g_map);
+        entities[38] = new boulder(position(105, 133), 1, g_map);
         for (int i = 0; i < 3; i++)
         {
-            entities[33 + i] = new boulder(position(109 + i, 131), 1, g_map);
+            entities[39 + i] = new boulder(position(109 + i, 131), 1, g_map);
         }
-        entities[36] = new boulder(position(108, 132), 1, g_map);
-        entities[37] = new boulder(position(110, 132), 1, g_map);
-        entities[38] = new boulder(position(109, 133), 1, g_map);
-        entities[39] = new boulder(position(111, 132), 1, g_map);
-        entities[40] = new boulder(position(112, 132), 1, g_map);
+        entities[102] = new boulder(position(108, 132), 1, g_map);
+        entities[103] = new boulder(position(110, 132), 1, g_map);
+        entities[42] = new boulder(position(109, 133), 1, g_map);
+        entities[43] = new boulder(position(111, 132), 1, g_map);
+        entities[44] = new boulder(position(112, 132), 1, g_map);
         for (int i = 0; i < 5; i++)
         {
-            entities[41 + i] = new boulder(position(132 + i, 152), 1, g_map);
+            entities[45 + i] = new boulder(position(132 + i, 152), 1, g_map);
         }
-        entities[46] = new boulder(position(132, 153), 1, g_map);
+        entities[51] = new boulder(position(132, 153), 1, g_map);
         for (int i = 0; i < 3; i++)
         {
-            entities[47 + i] = new boulder(position(134 + i, 153), 1, g_map);
+            entities[52 + i] = new boulder(position(134 + i, 153), 1, g_map);
         }
         for (int i = 0; i < 4; i++)
         {
-            entities[50 + i] = new boulder(position(132 + i, 154), 1, g_map);
+            entities[55 + i] = new boulder(position(132 + i, 154), 1, g_map);
         }
         for (int i = 0; i < 43; i++) //Map 3's Wrist
         {
@@ -2391,6 +2435,9 @@ void mapchange(int x)
     }
     else if (maplevel == 5)
     {
+        fg_map.setmapposition(position(39 - 12, 14), string("Press 0 to skip cutscene"), static_cast<WORD>(4));
+        scene = 1;
+        cutscenetimer = 0;
         g_dElapsedTime = 999;
         tools[1] = "none";
         currenttool = 0;
@@ -2665,6 +2712,10 @@ void backgroundchange(string bg, string bgc, string fg) {
     {
         bg_map.fill(bg_images_red, size(bg_images_red), bg_weightage_red);
     }
+    else if (bg == "purple")
+    {
+        bg_map.fill(bg_images_purple, size(bg_images_purple), bg_weightage_purple);
+    }
 
     if (bgc == "nature")
     {
@@ -2700,83 +2751,150 @@ void flashred(float duration) {
 }
 
 void updatecutscene() {
-    if (cutscenetimer >= 25.5 && cutscenetimer <= 25.6f)
+    //doctor arrives
+    if (scene == 3)
     {
-        tools[1] = "Water Gun";
-        currenttool = 1;
-        chained = false;
-        entities[1]->die(g_map, bg_map, bgc_map);
-        entities[1] = new boss(position(39, 4), 1, g_map);
-        if (entities[3] != NULL)
+        if (cutscenetimer >= 9.9f && cutscenetimer < 10)
         {
-            entities[3]->sethp(0);
+            backgroundchange("", "", "clear");
+            chained = false;
+            static_cast<boss*>(entities[1])->setphase(3);
+            currenttool = 1;
+            scene = 4;
         }
-        worshipper->setpos(position(100, 100), g_map);
-        g_map.setmapposition(position(39, 5), image(NULL, 0));
-    }
-    else if (cutscenetimer >= 24.2 && cutscenetimer <= 24.3f)
-    {
-        flashred(2);
-        g_map.setmapposition(position(34, 7), image(NULL, 0));
-        g_map.setmapposition(position(45, 7), image(NULL, 0));
-        g_map.setmapposition(position(30, 6), image(NULL, 0));
-        g_map.setmapposition(position(49, 6), image(NULL, 0));
-    }
-    else if (cutscenetimer >= 22.2 && cutscenetimer <= 22.3f)
-    {
-        g_map.setmapposition(position(34, 7), image('M', 4));
-        g_map.setmapposition(position(45, 7), image('M', 4));
-        g_map.setmapposition(position(30, 6), image('M', 4));
-        g_map.setmapposition(position(49, 6), image('M', 4));
-    }
-    else if (cutscenetimer >= 19 && cutscenetimer <= 19.1f)
-    {
-        worshipper->settext("FOOL`THIS CHANGES NOTHING`IT WILL STILL ARRIVE", fg_map);
-    }
-    else if (cutscenetimer >= 15.4 && cutscenetimer <= 15.5f)
-    {
-        for (int x = 0; x < 80; x++)
+        else if (cutscenetimer >= 9.7f && cutscenetimer < 9.8f)
         {
-            for (int y = 0; y < 25; y++)
+            backgroundchange("", "", "white");
+            if (entities[2] != NULL)
             {
-                if (g_map.getmapposition(position(x, y)).gettext() == 'Q' || g_map.getmapposition(position(x, y)).gettext() == '|')
-                {
-                    g_map.setmapposition(position(x, y), image(NULL, 0));
-                }
+                g_map.setmapposition(entities[2]->getpos(), image(NULL, 0));
+                entities[2]->sethp(0);
+                entities[2] = NULL;
             }
         }
-        backgroundchange("", "", "clear");
-        entities[3] = new NPC(position(39, 14), 99, 0.25f, image(2, 0 + 16), "I have your back just as you once had mine", "lace", g_map);
-    }
-    else if (cutscenetimer >= 15.2f && cutscenetimer <= 15.3f)
-    {
-        if (entities[7] != NULL)
+        else if (cutscenetimer >= 7.7f && cutscenetimer < 7.8f)
         {
-            entities[7]->sethp(0);
+            nonbuffplayerskin = image(1, 0 + 176);
+            g_player->setimage(nonbuffplayerskin);
+            static_cast<NPC*>(entities[2])->settext("unfortunately, I cant stay to help`good luck", fg_map);
+            if (entities[3] != NULL)
+            {
+                g_map.setmapposition(entities[3]->getpos(), image(NULL, 0));
+                entities[3]->sethp(0);
+                entities[3] = NULL;
+            }
         }
-        backgroundchange("", "", "white");
+        else if (cutscenetimer >= 7.5 && cutscenetimer < 7.6f)
+        {
+            entities[3] = new projectile(entities[2]->getpos(), g_player->getpos(), image('T', 11 + 16), 0, "suit?", g_map, "", 0, image(NULL, 0));
+        }
+        else if (cutscenetimer >= 1 && cutscenetimer < 1.1f)
+        {
+            entities[2] = new NPC(position(48, 16), 99, 0.25f, image(2, 10 + 16), "So that's the source...`This suit may not protect you from virus,`but it will damage that... thing", "doctor", g_map);
+        }
+        else if (cutscenetimer <= 0.1)
+        {
+            flashred(1);
+            chained = true;
+            currenttool = 0;
+            g_map.setmapposition(g_player->getpos(), image(0, NULL));
+            g_player->setpos(position(39, 20), g_map);
+        }
     }
-    else if (cutscenetimer >= 14.5f && cutscenetimer <= 14.6f)
+    //intro scene
+    if (scene == 1)
     {
-        entities[7] = new projectile(worshipper->getpos(), position(39, 12), image('|', 15 + 64), 0.05f, "laser", g_map, "player", 0, image('|', 15 + 64), "g");
-    }
-    else if (cutscenetimer >= 12 && cutscenetimer <= 12.1f)
-    {
-        worshipper->settext("I have no more use for you`ATONE FOR YOUR SINS", fg_map);
-    }
-    else if (cutscenetimer >= 6.8f && cutscenetimer <= 6.9f)
-    {
-        flashred(0.2f);
-    }
-    else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
-    {
-        worshipper->settext("No need to bother`I had control over you the entire time`now is no exception", fg_map);
-        entities[3] = new projectile(position(1, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
-        entities[4] = new projectile(position(78, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
-        entities[5] = new projectile(position(1, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
-        entities[6] = new projectile(position(78, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+        if (cutscenetimer >= 25.5 && cutscenetimer <= 25.6f)
+        {
+            scene = 2;
+            tools[1] = "Water Gun";
+            nonbuffplayerskin = image(1, 0);
+            g_player->setimage(nonbuffplayerskin);
+            currenttool = 1;
+            chained = false;
+            entities[1]->die(g_map, bg_map, bgc_map);
+            entities[1] = new boss(position(39, 4), 1, g_map);
+            if (entities[3] != NULL)
+            {
+                entities[3]->sethp(0);
+            }
+            worshipper->setpos(position(100, 100), g_map);
+            g_map.setmapposition(position(39, 5), image(NULL, 0));
+        }
+        else if (cutscenetimer >= 24.2 && cutscenetimer <= 24.3f)
+        {
+            flashred(2);
+            g_map.setmapposition(position(34, 7), image(NULL, 0));
+            g_map.setmapposition(position(45, 7), image(NULL, 0));
+            g_map.setmapposition(position(30, 6), image(NULL, 0));
+            g_map.setmapposition(position(49, 6), image(NULL, 0));
+        }
+        else if (cutscenetimer >= 22.2 && cutscenetimer <= 22.3f)
+        {
+            g_map.setmapposition(position(34, 7), image('M', 4));
+            g_map.setmapposition(position(45, 7), image('M', 4));
+            g_map.setmapposition(position(30, 6), image('M', 4));
+            g_map.setmapposition(position(49, 6), image('M', 4));
+        }
+        else if (cutscenetimer >= 19 && cutscenetimer <= 19.1f)
+        {
+            worshipper->settext("FOOL`THIS CHANGES NOTHING`IT WILL STILL ARRIVE", fg_map);
+            static_cast<NPC*>(entities[3])->settext("I'll take care of the cultist`Try to survive, we'll come for you after", fg_map);
+        }
+        else if (cutscenetimer >= 15.4 && cutscenetimer <= 15.5f)
+        {
+            for (int x = 0; x < 80; x++)
+            {
+                for (int y = 0; y < 25; y++)
+                {
+                    if (g_map.getmapposition(position(x, y)).gettext() == 'Q' || g_map.getmapposition(position(x, y)).gettext() == '|')
+                    {
+                        g_map.setmapposition(position(x, y), image(NULL, 0));
+                    }
+                }
+            }
+            backgroundchange("", "", "clear");
+            entities[3] = new NPC(position(39, 14), 99, 0.25f, image(2, 0 + 16), "I have your back just as you once had mine", "lace", g_map);
+        }
+        else if (cutscenetimer >= 15.2f && cutscenetimer <= 15.3f)
+        {
+            if (entities[7] != NULL)
+            {
+                entities[7]->sethp(0);
+            }
+            backgroundchange("", "", "white");
+        }
+        else if (cutscenetimer >= 14.5f && cutscenetimer <= 14.6f)
+        {
+            entities[7] = new projectile(worshipper->getpos(), position(39, 12), image('|', 15 + 64), 0.05f, "laser", g_map, "player", 0, image('|', 15 + 64), "g");
+        }
+        else if (cutscenetimer >= 12 && cutscenetimer <= 12.1f)
+        {
+            worshipper->settext("I have no more use for you`ATONE FOR YOUR SINS", fg_map);
+        }
+        else if (cutscenetimer >= 6.8f && cutscenetimer <= 6.9f)
+        {
+            flashred(0.2f);
+        }
+        else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
+        {
+            worshipper->settext("No need to bother`I had control over you the entire time`now is no exception", fg_map);
+            entities[3] = new projectile(position(1, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+            entities[4] = new projectile(position(78, 2), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+            entities[5] = new projectile(position(1, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+            entities[6] = new projectile(position(78, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
+        }
     }
 }
+
+/*scenes:
+0 - nothing
+1 - intro to boss being summoned
+2 - nothing (so it doesnt run a lot of if statements)
+3 - Doctor shows how to attack the boss
+4 - nothing (so it doesnt run a lot of if statements)
+*/
+
 /*list of colours used:
 g_map
 240  -> walls (fg: NULL    bg: white    text: NULL)
