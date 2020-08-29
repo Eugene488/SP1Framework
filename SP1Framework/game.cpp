@@ -133,6 +133,7 @@ void init(void)
     //g_dElapsedTime = 3600.0;    // Susceptible to change
     mapchange(maplevel);
     // sets the initial state for the game
+    mapchange(maplevel);
     g_eGameState = S_MAIN;
 
     // sets the width, height and the font name to use in the console
@@ -142,7 +143,6 @@ void init(void)
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
-
 
     //debugging things
     for (int i = 0; i < MAXENTITY; i++)
@@ -436,12 +436,12 @@ void updateGame(double dt)       // gameplay logic
     }
     if (g_dbufftime < 5.0)
     {
-        g_dbufftime += dt;
+        g_dbufftime += dt; // timer for the toilet paper buff
     }
     if (g_dbufftime >= 5.0)
     {
-        g_player->setimage(nonbuffplayerskin);
-        toiletpaperbuff = false;
+        g_player->setimage(nonbuffplayerskin); //set the skin for the player in toilet paper buff
+        toiletpaperbuff = false; //will make the toilet paper buff lose effect after 5 seconds
     }
     // increasing timers for entities
 
@@ -575,22 +575,23 @@ void moveCharacter()
     }
     //trigger detection for g_map
     WORD g_mapcolour = static_cast<WORD>(g_map.getmapposition(futurloc).getcolour());
+
     if (g_mapcolour == static_cast<WORD>(0x0C)) //mask
     {
         PlaySound(TEXT("WIN.wav"), NULL, SND_ASYNC);
-        maplevel++;
-        maskrenderout();
-        mapchange(maplevel);
-        futurloc = entities[0]->getpos();
+        maplevel++; // will plus the map level everytime mask is collided
+        maskrenderout(); // will render out the mask
+        mapchange(maplevel); // will change the map according to the map level
+        futurloc = entities[0]->getpos(); //will enable mask to be in different locations of the map
         
     }
     else if (g_mapcolour == static_cast<WORD>(0x0D)) //TP
     {
         PlaySound(TEXT("Fairy Dust Sound Effect.wav"), NULL, SND_ASYNC);
-        toiletpaperbuff = true;
-        g_dbufftime = 0.0;
-        g_player->setimage(image(1, 14 + 128));
-        maskrenderout();
+        toiletpaperbuff = true; //if TP is collided this will become true
+        g_dbufftime = 0.0; //will reset the timer of the buff time to 0
+        g_player->setimage(image(1, 14 + 128)); //for the buff skin when collected the mask
+        maskrenderout(); //will render out the TP when the player collects it
         
     }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
@@ -608,10 +609,10 @@ void moveCharacter()
                 {
                     if (entities[idx[i]]->getname() == "virus" || entities[idx[i]]->getname() == "poison needle")
                     {
-                        entities[idx[i]]->sethp(0);
+                         //will make virus not do any damge to the player when toilet paper buff is true
                         if (toiletpaperbuff == true)
                         {
-                            //do nothing
+                            entities[idx[i]]->sethp(0);
                         }
                         else
                         {
@@ -1219,8 +1220,8 @@ void maskrenderout()
 NPC* worshipper;
 void mapchange(int x)
 {
-    clearentities();
-    g_map.clearmap();
+    clearentities(); //clears entities after mapchange
+    g_map.clearmap(); // will clear the map
     bg_map.clearmap();
     bgc_map.clearmap();
     fg_map.clearmap();
