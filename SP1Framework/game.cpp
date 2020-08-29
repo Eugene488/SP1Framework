@@ -131,7 +131,7 @@ void init(void)
     tools[0] = "fists";
     // Set precision for floating point output
     //g_dElapsedTime = 3600.0;    // Susceptible to change
-
+    mapchange(maplevel);
     // sets the initial state for the game
     g_eGameState = S_MAIN;
 
@@ -143,7 +143,7 @@ void init(void)
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
 
-    mapchange(maplevel);
+
     //debugging things
     for (int i = 0; i < MAXENTITY; i++)
     {
@@ -606,7 +606,7 @@ void moveCharacter()
                 }
                 else
                 {
-                    if (entities[idx[i]]->getname() == "virus")
+                    if (entities[idx[i]]->getname() == "virus" || entities[idx[i]]->getname() == "poison needle")
                     {
                         entities[idx[i]]->sethp(0);
                         if (toiletpaperbuff == true)
@@ -787,7 +787,24 @@ void moveCharacter()
                 }
             }
             entities[1] = new boss(position(39, 4), 1, g_map);
+            g_map.setmapposition(position(39, 17), image(NULL, 0));
             g_map.setmapposition(position(39, 5), image(NULL, 0));
+        }
+        else if (scene == 5)
+        {
+            flashred(1);
+            chained = false;
+            currenttool = 1;
+            g_map.setmapposition(position(39, 17), image(NULL, 0));
+            static_cast<boss*>(entities[1])->setphase(5);
+            scene = 6;
+            for (int i = 2; i < 7; i++)
+            {
+                if (entities[i] != NULL)
+                {
+                    entities[i]->sethp(0);
+                }
+            }
         }
         g_skKeyEvent[K_0].keyDown = 0;
         g_skKeyEvent[K_0].keyReleased = 0;
@@ -873,23 +890,7 @@ void renderGame()
 }
 
 void renderMap()
-{
-    //delete this later, keep for reference on how the code works
-    // Set up sample colours, and output shadings
-    //const WORD colors[] = {
-    //    0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
-    //    0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
-    //};
-
-    //COORD c;
-    //for (int i = 0; i < 12; ++i)
-    //{
-    //    c.X = 5 * i;
-    //    c.Y = i + 1;
-    //    colour(colors[i]);
-    //    g_Console.writeToBuffer(c, " °±²Û", colors[i]);
-    //}
-    
+{   
     //rendering the maps
     COORD c;
     if (maplevel != 5)
@@ -1244,7 +1245,7 @@ void mapchange(int x)
         entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
         entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS for 4.9+ seconds(no refunds)", "TP Man", g_map);
         entities[4] = new NPC(position(165, 43), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`Retrieve the 4 Masks of Yendor and save the world`I will guide you along the journey", "Worshipper", g_map);
-        entities[5] = new NPC(position(136, 42), 99, 0.25f, image(2, 10), "Beware of the virus!`These dont seem to be natural...`(mouse over items to see what they are)", "doctor", g_map);
+        entities[5] = new NPC(position(136, 42), 99, 0.25f, image(2, 10), "Beware of the virus!`These dont seem to be natural...`(mouse over items to see what they are)", "Doctor", g_map);
 
         for (int i = 0; i < 40; i++)
         {
@@ -1694,7 +1695,7 @@ void mapchange(int x)
         entities[14] = new boulder(position(90, 183), 1, g_map);
         entities[15] = new boulder(position(89, 182), 1, g_map);
         entities[16] = new boulder(position(89, 183), 1, g_map);
-        entities[17] = new NPC(position(78, 195), 99, 0.25f, image(2, 0), "Hey, can you help me push those barricades away?`I would do it myself but I'm currently too weak.", "lace", g_map);
+        entities[17] = new NPC(position(78, 195), 99, 0.25f, image(2, 0), "Hey, can you help me push those barricades away?`I would do it myself but I'm currently too weak.", "Lace", g_map);
         entities[18] = new NPC(position(96, 199), 99, 0.25f, image(2, 4), "Psst, you can click on him to shut him up.`No need to listen to his excuses.", "Worshipper", g_map);
         for (int i = 0; i < 4; i++)
         {
@@ -2639,6 +2640,11 @@ void mainMenu()
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if ((g_mouseEvent.buttonState == FROM_LEFT_1ST_BUTTON_PRESSED) && (g_mouseEvent.mousePosition.X >= c.X) && (g_mouseEvent.mousePosition.X <= c.X + ss.tellp() - 1) && (g_mouseEvent.mousePosition.Y == c.Y))
     {
+        for (int i = 0; i < MAXENTITY; i++)
+        {
+            delete entities[i];
+            entities[i] = NULL;
+        }
         g_bQuitGame = true;
     }
 }
@@ -2753,8 +2759,117 @@ void flashred(float duration) {
 }
 
 void updatecutscene() {
+    //ending
+    if (scene == 7)
+    {
+        if (cutscenetimer >= 13 && cutscenetimer <= 13.1f)
+        {
+            maplevel++;
+            mapchange(6);
+        }
+        else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
+        {
+            clearentities();
+            fg_map.clearmap();
+            g_map.clearmap();
+            entities[2] = new NPC(position(39, 7), 10, 0.25f, image(2, 4), "...they did it`unfortunately, they wont be here next time", "Cult Worshipper", g_map);
+        }
+        else if (cutscenetimer >= 4.9 && cutscenetimer <= 5)
+        {
+            flashred(1);
+            nonbuffplayerskin = image(1, 0);
+            g_player->setimage(nonbuffplayerskin);
+        }
+        else if (cutscenetimer >= 4 && cutscenetimer <= 4.1f)
+        {
+            entities[7] = new projectile(position(39, 12), position(39, 11), image('|', 14 + 240), 0, "spirit energy", g_map, "", 999, image('|', 14 + 240), "g");
+        }
+        else if (cutscenetimer >= 0.5f && cutscenetimer <= 0.6f)
+        {
+            backgroundchange("", "", "clear");
+            static_cast<NPC*>(entities[3])->settext("THIS IS IT! LETS FINISH THIS!", fg_map);
+        }
+        else if (cutscenetimer >= 0.1f && cutscenetimer <= 0.2f)
+        {
+            chained = true;
+            currenttool = 0;
+            g_map.setmapposition(entities[1]->getpos(), image(NULL, 0));
+            g_map.setmapposition(g_player->getpos(), image(NULL, 0));
+            entities[1]->setpos(position(39, 4), g_map);
+            g_player->setpos(position(39, 15), g_map);
+            entities[3] = new NPC(position(44, 14), 99, 0.25f, image(2, 15 + 16), "", "TP Man", g_map);
+            entities[4] = new NPC(position(35, 14), 99, 0.25f, image(2, 10 + 16), "", "Doctor", g_map);
+            entities[5] = new NPC(position(30, 11), 99, 0.25f, image(2, 0 + 16), "", "Lace", g_map);
+            entities[6] = new NPC(position(49, 11), 99, 0.5f, image(2, 15 + 16), "", "Scientist", g_map);
+            backgroundchange("space", "space", "white");
+            wallskin = image('x', 4);
+            nonbuffplayerskin = image(1, 0 + 176);
+            g_player->setimage(nonbuffplayerskin);
+            g_map.setmapposition(position(39, 12), image('|', 14 + 240));
+        }
+    }
+    //final confrontation
+    else if (scene == 5)
+    {
+        if (cutscenetimer >= 26 && cutscenetimer <= 26.1f)
+        {
+            chained = false;
+            currenttool = 1;
+            static_cast<boss*>(entities[1])->setphase(5);
+            for (int i = 2; i < 7; i++)
+            {
+                if (entities[i] != NULL)
+                {
+                    entities[i]->sethp(0);
+                }
+            }
+            scene = 6;
+        }
+        else if (cutscenetimer >= 22 && cutscenetimer <= 22.1f)
+        {
+            static_cast<NPC*>(entities[6])->settext("distract and weaken Yendor`we will set up the secret weapon", fg_map);
+        }
+        else if (cutscenetimer >= 21 && cutscenetimer <= 21.1f)
+        {
+            static_cast<NPC*>(entities[3])->settext("Looks like we cant convince him", fg_map);
+        }
+        else if (cutscenetimer >= 16 && cutscenetimer <= 16.1f)
+        {
+            worshipper->settext("By intruding here, all of you have already lost your lives`Even if you win, you can't go back, So give up", fg_map);
+        }
+        else if (cutscenetimer >= 8 && cutscenetimer <= 8.1f)
+        {
+            worshipper->settext("Even if Yendor doesnt end humanity`they themselves will do it eventually`taking Earth down with them", fg_map);
+        }
+        else if (cutscenetimer >= 1 && cutscenetimer <= 1.1f)
+        {
+            backgroundchange("", "", "clear");
+            worshipper->settext("ENOUGH!`you humans keep hurting and exploiting the Earth for personal gain`I cant let that continue", fg_map);
+            fg_map.setmapposition(position(39 - 12, 23), string("Press 0 to skip cutscene"), static_cast<WORD>(4));
+        }
+        else if (cutscenetimer >= 0 && cutscenetimer <= 0.1f)
+        {
+            chained = true;
+            currenttool = 0;
+            g_map.setmapposition(entities[1]->getpos(), image(NULL, 0));
+            g_map.setmapposition(g_player->getpos(), image(NULL, 0));
+            entities[1]->setpos(position(39, 4), g_map);
+            entities[2] = new NPC(position(39, 7), 10, 0.25f, image(2, 4), "", "Cult Worshipper", g_map);
+            g_player->setpos(position(39, 15), g_map);
+            entities[3] = new NPC(position(44, 14), 99, 0.25f, image(2, 15 + 16), "", "TP Man", g_map);
+            entities[4] = new NPC(position(35, 14), 99, 0.25f, image(2, 10 + 16), "", "Doctor", g_map);
+            entities[5] = new NPC(position(30, 11), 99, 0.25f, image(2, 0 + 16), "", "Lace", g_map);
+            entities[6] = new NPC(position(49, 11), 99, 0.5f, image(2, 15 + 16), "", "Scientist", g_map);
+            worshipper = static_cast<NPC*>(entities[2]);
+            backgroundchange("space", "space", "white");
+            wallskin = image('x', 4);
+            nonbuffplayerskin = image(1, 0 + 176);
+            g_player->setimage(nonbuffplayerskin);
+            g_player->sethp(5);
+        }
+    }
     //doctor arrives
-    if (scene == 3)
+    else if (scene == 3)
     {
         if (cutscenetimer >= 9.9f && cutscenetimer < 10)
         {
@@ -2792,7 +2907,7 @@ void updatecutscene() {
         }
         else if (cutscenetimer >= 1 && cutscenetimer < 1.1f)
         {
-            entities[2] = new NPC(position(48, 16), 99, 0.25f, image(2, 10 + 16), "So that's the source...`This suit may not protect you from virus,`but it will damage that... thing", "doctor", g_map);
+            entities[2] = new NPC(position(48, 16), 99, 0.25f, image(2, 10 + 16), "So that's the source...`This suit may not protect you from virus,`but it will damage that... thing", "Doctor", g_map);
         }
         else if (cutscenetimer <= 0.1)
         {
@@ -2804,7 +2919,7 @@ void updatecutscene() {
         }
     }
     //intro scene
-    if (scene == 1)
+    else if (scene == 1)
     {
         if (cutscenetimer >= 25.5 && cutscenetimer <= 25.6f)
         {
@@ -2856,7 +2971,7 @@ void updatecutscene() {
                 }
             }
             backgroundchange("", "", "clear");
-            entities[3] = new NPC(position(39, 14), 99, 0.25f, image(2, 0 + 16), "I have your back just as you once had mine", "lace", g_map);
+            entities[3] = new NPC(position(39, 14), 99, 0.25f, image(2, 0 + 16), "I have your back just as you once had mine", "Lace", g_map);
         }
         else if (cutscenetimer >= 15.2f && cutscenetimer <= 15.3f)
         {
@@ -2887,6 +3002,7 @@ void updatecutscene() {
             entities[6] = new projectile(position(78, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
         }
     }
+
 }
 
 /*scenes:
@@ -2895,6 +3011,9 @@ void updatecutscene() {
 2 - nothing (so it doesnt run a lot of if statements)
 3 - Doctor shows how to attack the boss
 4 - nothing (so it doesnt run a lot of if statements)
+5 - Final confrontation
+6 - nothing
+7 - epilogue
 */
 
 /*list of colours used:

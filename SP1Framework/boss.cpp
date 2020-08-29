@@ -1,7 +1,5 @@
 #include "boss.h"
-#include "lightning.h"
-#include "virus_spawner.h"
-#include "boulder.h"
+
 
 const int boss::maxentities = 2000;
 
@@ -60,13 +58,13 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 			}
 		}
 	}
-	if (phase == 2)
+	else if (phase == 2)
 	{
 		clearentities(entities, g_map, bg_map, bgc_map);
 		fg_map.clearmap();
 		spd = 100;
 	}
-	if (phase == 3)
+	else if (phase == 3)
 	{
 		clearentities(entities, g_map, bg_map, bgc_map);
 		wallskin = image(NULL, 0);
@@ -185,6 +183,85 @@ void boss::move(map& g_map, map& bg_map, map& bgc_map, WORD solids[], int listsi
 		}
 		spd = 15;
 	}
+	else if (phase == 4)
+	{
+		clearentities(entities, g_map, bg_map, bgc_map);
+		fg_map.clearmap();
+		spd = 1000000;
+	}
+	else if (phase == 5)
+	{
+		clearentities(entities, g_map, bg_map, bgc_map);
+		wallskin = image('x', 4);
+		backgroundchange("space", "space", "clear");
+		//spawn random barricades
+		for (int i = 0; i < 25; i++)
+		{
+			int x = rand() % 78 + 1;
+			int y = rand() % 23 + 1;
+			if (g_map.getmapposition(position(x, y)).gettext() != static_cast<char>(1) || (x != pos.get('x') && y != pos.get('y')))
+			{
+				for (int i = 0; i < maxentities; i++)
+				{
+					if (entities[i] == NULL)
+					{
+						entities[i] = new boulder(position(x, y), 1, g_map);
+						break;
+					}
+				}
+			}
+		}
+		//spawn projectiles vertically
+		for (int i = 0; i < 50; i++)
+		{
+			for (int i = 0; i < MAXENTITY; i++)
+			{
+				if (entities[i] == NULL)
+				{
+					int x = rand() % 78 + 1;
+					entities[i] = new projectile(position(x, 1), position(x, 2), image(-17, 5 + 208), 0.2f, "poison needle", g_map, "", 1, image(NULL, 0));
+					break;
+				}
+			}
+		}
+		//spawn projectiles horizontally
+		for (int i = 0; i < 20; i++)
+		{
+			for (int i = 0; i < MAXENTITY; i++)
+			{
+				if (entities[i] == NULL)
+				{
+					int y = rand() % 23 + 1;
+					float spd = rand() % 30;
+					entities[i] = new projectile(position(1, y), position(2, y), image(-17, 5 + 208), (spd/100), "poison needle", g_map, "", 1, image(NULL, 0));
+					break;
+				}
+			}
+		}
+		for (int i = 0; i < 20; i++)
+		{
+			for (int i = 0; i < MAXENTITY; i++)
+			{
+				if (entities[i] == NULL)
+				{
+					int y = rand() % 23 + 1;
+					float spd = rand() % 30;
+					entities[i] = new projectile(position(78, y), position(77, y), image(-17, 5 + 208), (spd/100), "poison needle", g_map, "", 1, image(NULL, 0));
+					break;
+				}
+			}
+		}
+		//move boss to random location
+		g_map.setmapposition(pos, image(NULL, 0));
+		setpos(position(rand() % 70 + 5, rand() % 20 + 2), g_map);
+		spd = 25;
+	}
+	else if (phase == 6)
+	{
+		clearentities(entities, g_map, bg_map, bgc_map);
+		fg_map.clearmap();
+		spd = 1000000;
+	}
 }
 void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* player) {
 	setimage(image(rand() % 200 - 100, rand() % 255));
@@ -227,9 +304,7 @@ void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* pl
 		}
 		if (hp <= 5)
 		{
-			extern int maplevel;
-			maplevel = 6;
-			//TODOphasechange(3);
+			phasechange(4);
 		}
 		stringstream ss;
 		ss.str("");
@@ -239,6 +314,29 @@ void boss::update(map& g_map, map& bg_map, map& bgc_map, map& fg_map, entity* pl
 			ss << " " << char(3);
 		}
 		fg_map.setmapposition(position(27, 24), ss.str(), static_cast<WORD>(2));
+	}
+	else if (phase == 5)
+	{
+		if (player->getpos().get('x') == pos.get('x') && player->getpos().get('y') == pos.get('y'))
+		{
+			phasetimer += 5;
+			spdtimer = 0;
+			spd = 0.5f;
+			g_map.setmapposition(pos, image(NULL, 0));
+			setpos(position(rand() % 70 + 5, rand() % 20 + 2), g_map);
+		}
+		if (phasetimer >= 90)
+		{
+			phasechange(6);
+		}
+		stringstream ss;
+		ss.str("");
+		ss << "boss hp: ???";
+		fg_map.setmapposition(position(27, 24), ss.str(), static_cast<WORD>(2));
+		if (spdtimer >= spd - 0.2f)
+		{
+			backgroundchange("", "", "white");
+		}
 	}
 }
 void boss::updatetimers(float dt) {
@@ -263,6 +361,22 @@ void boss::phasechange(int phasetochangeto) {
 	{
 		spd = 1;
 		spdtimer = 0;
+	}
+	else if (phase == 4)
+	{
+		scene = 5;
+		spd = 0;
+		cutscenetimer = 0;
+	}
+	else if (phase == 5)
+	{
+		spd = 2;
+	}
+	else if (phase == 6)
+	{
+		scene = 7;
+		spd = 0;
+		cutscenetimer = 0;
 	}
 }
 void boss::clearentities(entity** entities, map& g_map, map& bg_map, map& bgc_map) {

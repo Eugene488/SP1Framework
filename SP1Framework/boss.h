@@ -1,5 +1,9 @@
 #pragma once
 #include "entity.h"
+#include "projectile.h"
+#include "lightning.h"
+#include "virus_spawner.h"
+#include "boulder.h"
 class boss :public entity
 {
 public:
