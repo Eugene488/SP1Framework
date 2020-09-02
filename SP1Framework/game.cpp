@@ -492,6 +492,52 @@ void updateGame(double dt)       // gameplay logic
                 entities[i]->update(g_map, bg_map, bgc_map, fg_map, g_player);
             }
         }
+        // Toggling between maps
+        if (g_skKeyEvent[K_1].keyDown)
+        {
+            maplevel = 1;
+            mapchange(maplevel);
+            g_skKeyEvent[K_1].keyDown = 0;
+            g_skKeyEvent[K_1].keyReleased = 0;
+
+            entities[0]->setpos(position(190, 30), g_map);
+        }
+        else if (g_skKeyEvent[K_2].keyDown)
+        {
+            maplevel = 2;
+            mapchange(maplevel);
+            g_skKeyEvent[K_2].keyDown = 0;
+            g_skKeyEvent[K_2].keyReleased = 0;
+
+            entities[0]->setpos(position(126, 44), g_map);
+        }
+        else if (g_skKeyEvent[K_3].keyDown)
+        {
+            maplevel = 3;
+            mapchange(maplevel);
+            g_skKeyEvent[K_3].keyDown = 0;
+            g_skKeyEvent[K_3].keyReleased = 0;
+
+            entities[0]->setpos(position(79, 197), g_map);
+        }
+        else if (g_skKeyEvent[K_4].keyDown)
+        {
+            maplevel = 4;
+            mapchange(maplevel);
+            g_skKeyEvent[K_4].keyDown = 0;
+            g_skKeyEvent[K_4].keyReleased = 0;
+
+            entities[0]->setpos(position(100, 199), g_map);
+        }
+        else if (g_skKeyEvent[K_5].keyDown)
+        {
+            maplevel = 5;
+            mapchange(maplevel);
+            g_skKeyEvent[K_5].keyDown = 0;
+            g_skKeyEvent[K_5].keyReleased = 0;
+
+            entities[0]->setpos(position(39, 17), g_map);
+        }
     }
     //movement for entities
     for (int i = 0; i < MAXENTITY; i++)
@@ -1048,6 +1094,7 @@ void renderInputEvents()
     // mouse events    
     //debugging
     ss.str("");
+    ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
 
     //debugtext = g_player->gethp();
     //ss << "x: " << g_mouseEvent.mousePosition.X + g_map.getcampos().get('x') << "y: " << g_mouseEvent.mousePosition.Y + g_map.getcampos().get('y');
@@ -1162,7 +1209,7 @@ void renderMask()
     if (maplevel == 1)
     {
         WORD charColor = 0x0C;
-        g_map.setmapposition(position(190, 24), image('M', charColor));
+        g_map.setmapposition(position(190, 24), image('M', charColor)); 
     }
     else if (maplevel == 2)
     {
@@ -1181,7 +1228,7 @@ void renderMask()
     {
 
         WORD charColor = 0x0C;
-        g_map.setmapposition(position(79, 72), image('M', charColor));
+        g_map.setmapposition(position(79, 72), image('M', charColor)); 
 
     }
     else if (maplevel == 6)
@@ -1657,7 +1704,7 @@ void mapchange(int x)
             g_map.setmapposition(position(81 + i, 94), image(' ', charColor));
             g_map.setmapposition(position(81 + i, 95), image(' ', charColor));
         }
-        for (int i = 0; i < 31; i++) // Map 3 Mid-Section
+        for (int i = 0; i < 31; i++) // Map 2 Mid-Section
         {
             g_map.setmapposition(position(101 + i, 45), image(' ', charColor));
             g_map.setmapposition(position(101 + i, 46), image(' ', charColor));
@@ -2461,7 +2508,7 @@ void mapchange(int x)
             g_map.setmapposition(position(i, 24), image(NULL, 240));
         }
         entities[1] = new boulder(position(99, 99), 1, g_map);
-        entities[2] = new NPC(position(39, 5), 99, 0.25f, image(2, 4), "Finally, we can save the world`and cure it of its plague......` THAT IS HUMANITY!", "Cult Worshipper", g_map);
+        entities[2] = new NPC(position(39, 5), 99, 0.25f, image(2, 4), "Finally, we can save the world`and cure it of its plague......`THAT IS HUMANITY!", "Cult Worshipper", g_map);
         worshipper = static_cast<NPC*>(entities[2]);
     }
 }
@@ -2478,6 +2525,7 @@ void renderOver() // render game over screen
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     if (g_skKeyEvent[K_ENTER].keyReleased)
     {
+        maplevel = 1;
         Restart();
         memset(g_skKeyEvent, 0, K_COUNT * sizeof(*g_skKeyEvent));
     }
@@ -2605,9 +2653,8 @@ void renderPause() // render pause screen
     }
 }
 
-void Restart() // restarts the game back to level 1
+void Restart() // restarts the game back to level that player is in
 {
-    maplevel = 1;
     mapchange(maplevel);
     shutdown();
     init();
@@ -2666,12 +2713,12 @@ void rendertutorialscreen() // prints out instructions
     c.X = g_Console.getConsoleSize().X / 2 - 13;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     ss.str("");
-    ss << "Goal is to collect the mask and avoid the virus!";
+    ss << "Collect the 4 Masks of Yendor while staying alive";
     c.Y += 1;
     c.X = g_Console.getConsoleSize().X / 2 - 13;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
     ss.str("");
-    ss << "Press <Enter> to continue";
+    ss << "Press <Enter> to start";
     c.Y += 1;
     c.X = g_Console.getConsoleSize().X / 2 - 13;
     g_Console.writeToBuffer(c, ss.str(), 0x03);
@@ -2763,17 +2810,38 @@ void updatecutscene() {
     //ending
     if (scene == 7)
     {
-        if (cutscenetimer >= 13 && cutscenetimer <= 13.1f)
+        if (cutscenetimer >= 50 && cutscenetimer <= 50.1f)
         {
             maplevel++;
             mapchange(6);
         }
-        else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
+        else if (cutscenetimer >= 38 && cutscenetimer <= 38.1f)
         {
             clearentities();
             fg_map.clearmap();
             g_map.clearmap();
-            entities[2] = new NPC(position(39, 7), 10, 0.25f, image(2, 4), "...they did it`unfortunately, they wont be here next time", "Cult Worshipper", g_map);
+            entities[2] = new NPC(position(39, 7), 10, 0.25f, image(2, 4), "...They did it, they defeated it, sealing him away...`Unfortunately, there will be no next time...FOR THEM!`MUAHAHAHAHHAHAHAHAHAHAHAHHAHA!!!", "Cult Worshipper", g_map);
+        }
+        else if (cutscenetimer >= 36.9 && cutscenetimer <= 37)
+        {
+            flashred(1);
+            nonbuffplayerskin = image(1, 0);
+            g_player->setimage(nonbuffplayerskin);
+        }
+        else if (cutscenetimer >= 31 && cutscenetimer <= 31.1f)
+        {
+            backgroundchange("", "", "clear");
+            static_cast<NPC*>(entities[3])->settext("Lets send you back home, shall we?`Once again, thank you, Messiah, for everything", fg_map);
+        }
+        else if (cutscenetimer >= 19 && cutscenetimer <= 19.1f)
+        {
+            backgroundchange("", "", "clear");
+            static_cast<NPC*>(entities[3])->settext("Unfortunately, destroying this thing won't do us any good.`In fact, it will lead to the birth of more horrific beings...`Looks like sealing it away is our only option.", fg_map);
+        }
+        else if (cutscenetimer >= 6 && cutscenetimer <= 6.1f)
+        {
+            backgroundchange("", "", "clear");
+            static_cast<NPC*>(entities[3])->settext("...Finally, its over.`Thank you Messiah, without you, defeating that monstrosity would have`been impossible. You have done our world a great service.", fg_map);
         }
         else if (cutscenetimer >= 4.9 && cutscenetimer <= 5)
         {
@@ -3003,7 +3071,6 @@ void updatecutscene() {
             entities[6] = new projectile(position(78, 22), g_player->getpos(), image('Q', 3), 0, "chains", g_map, "player", 0, image('Q', 3), "g");
         }
     }
-
 }
 
 /*scenes:
