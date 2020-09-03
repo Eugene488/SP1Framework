@@ -21,6 +21,7 @@
 #include "lightning.h"
 #include "boss.h"
 bool played = PlaySound(TEXT(""), NULL, SND_ASYNC); // plays background music
+bool newbuff = false;
 bool toiletpaperbuff = false;
 double  g_dElapsedTime;
 double  g_dDeltaTime;
@@ -442,6 +443,7 @@ void updateGame(double dt)       // gameplay logic
     {
         g_player->setimage(nonbuffplayerskin); //set the skin for the player in toilet paper buff
         toiletpaperbuff = false; //will make the toilet paper buff lose effect after 5 seconds
+        newbuff = false;
     }
     // increasing timers for entities
 
@@ -640,6 +642,14 @@ void moveCharacter()
         maskrenderout(); //will render out the TP when the player collects it
         
     }
+    else if (g_mapcolour == static_cast<WORD>(0x0E))
+    {
+        newbuff = true;
+        g_dbufftime = 0.0; 
+        g_player->setimage(image(1, 14 + 128));
+        maskrenderout();
+
+    }
     else if (g_mapcolour == static_cast<WORD>(213)) //virus
     {
         getentityfrompos(idx, futurloc, g_map);
@@ -692,7 +702,14 @@ void moveCharacter()
     char bgc_map_char = bgc_map.getmapposition(futurloc).gettext();
     if (bgc_map_char == -21) //fire
     {
-        g_player->takedmg(1);
+        if (newbuff == true)
+        {
+            g_player->sethp(5);
+        }
+        else
+        {
+            g_player->takedmg(1);
+        }
         if (g_player->gethp() < 1)
         {
             g_eGameState = S_OVER;
@@ -1038,7 +1055,7 @@ void renderFramerate()
     }
     c.X = 0;
     c.Y = 0;
-    if (toiletpaperbuff == true)
+    if (toiletpaperbuff == true || newbuff == true)
     {
         g_Console.writeToBuffer(c, ss.str(), 14 + 96);
     }
@@ -1046,13 +1063,6 @@ void renderFramerate()
     {
         g_Console.writeToBuffer(c, ss.str(), 4 + 96);
     }
-    //displays current tool
-    //ss.str("");
-    //ss << "current tool: ";
-    //ss << tools[currenttool];
-    //c.X = 0;
-    //c.Y = g_Console.getConsoleSize().Y-1;
-    //g_Console.writeToBuffer(c, ss.str(), 96);
 
 }
 
@@ -1237,6 +1247,8 @@ void renderMask()
     }
 }
 
+
+
 void renderTP()
 {
     
@@ -1291,7 +1303,7 @@ void mapchange(int x)
         backgroundchange("space", "space", "clear");
         entities[1] = new virus_spawner(position(107, 35), 0.1f, g_map);
         entities[2] = new virus_spawner(position(136, 11), 0.1f, g_map);
-        entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS for 4.9+ seconds(no refunds)", "TP Man", g_map);
+        entities[3] = new NPC(position(155, 14), 99, 0.25f, image(2, 15), "SELLING TOILET PAPER!`HEY YOU WANT A FREE TRIAL?`GUARENTEED TO PROTECT YOU FROM VIRUS FOR 4.9+ seconds(NO REFUNDS)", "TP Man", g_map);
         entities[4] = new NPC(position(165, 43), 99, 0.25f, image(2, 4), "THE MESSIAH IS HERE!`Retrieve the 4 Masks of Yendor and save the world`I will guide you along the journey", "Worshipper", g_map);
         entities[5] = new NPC(position(136, 42), 99, 0.25f, image(2, 10), "Beware of the virus!`These dont seem to be natural...`(mouse over items to see what they are)", "Doctor", g_map);
 
@@ -2471,6 +2483,12 @@ void mapchange(int x)
             g_map.setmapposition(position(101 + i, 84 ), image(' ', charColor));
             g_map.setmapposition(position(101 + i, 93), image(' ', charColor));
         }
+        for (int i = 0; i < 3; i++)
+        {
+            g_map.setmapposition(position(72 + i, 88), image(' ', charColor));
+            g_map.setmapposition(position(72 + i, 86), image(' ', charColor));
+            g_map.setmapposition(position(74, 88 - i), image(' ', charColor));
+        }
         g_map.setmapposition(position(108, 82), image(' ', charColor));
         g_map.setmapposition(position(101, 130), image(' ', charColor));
         g_map.setmapposition(position(107, 128), image(' ', charColor));
@@ -2479,10 +2497,13 @@ void mapchange(int x)
         g_map.setmapposition(position(56, 83), image(' ', charColor));
         g_map.setmapposition(position(23, 96), image(' ', charColor));
         g_map.setmapposition(position(17, 109), image(' ', charColor));
+        
         WORD charColor = 0x0D;
         g_map.setmapposition(position(85, 87), image('T', charColor));
+        g_map.setmapposition(position(88, 87), image('O', 0x0E));
 
         entities[0]->setpos(position(100, 199), g_map);
+        entities[1] = new NPC(position(73, 87), 99, 0.25f, image(2, 15), "FLAME CLEANSING PILL! PROTECTS YOU FROM`THE FLAMES! GET IT NOW PAIRED WITH THE TOILET PAPER!", "TP Man", g_map);
     }
     else if (maplevel == 5)
     {
